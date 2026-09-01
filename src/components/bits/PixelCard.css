@@ -1,0 +1,31 @@
+.pixel-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+.pixel-card {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: visible;
+  display: block;
+  isolation: isolate;
+  border: none;
+  background: transparent;
+  user-select: none;
+}
+
+.pixel-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  aspect-ratio: 1;
+  background: radial-gradient(circle, transparent, transparent 85%);
+  opacity: 0;
+  transition: opacity 800ms cubic-bezier(0.5, 1, 0.89, 1);
+}
