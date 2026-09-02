@@ -32,7 +32,7 @@ export function Icon({ name, className = 'h-5 w-5' }: IconProps) {
     case 'menu':
       return (
         <svg {...common}>
-          <path d="M5 5h14M5 12h14M5 19h14" />
+          <path d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       )
     case 'x':
@@ -107,6 +107,39 @@ export function Icon({ name, className = 'h-5 w-5' }: IconProps) {
         <svg {...common}>
           <circle cx="12" cy="12" r="9" />
           <path d="M12 7v5l3 3" />
+        </svg>
+      )
+    case 'pin':
+      return (
+        <svg {...common}>
+          <path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z" />
+          <circle cx="12" cy="10" r="3" />
+        </svg>
+      )
+    case 'lock':
+      return (
+        <svg {...common}>
+          <rect x="4" y="11" width="16" height="10" rx="2" />
+          <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+        </svg>
+      )
+    case 'trash':
+      return (
+        <svg {...common}>
+          <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 6M10 11v6M14 11v6" />
+        </svg>
+      )
+    case 'plus':
+      return (
+        <svg {...common}>
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      )
+    case 'logout':
+      return (
+        <svg {...common}>
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <path d="M16 17l5-5-5-5M21 12H9" />
         </svg>
       )
     case 'chevron-left':

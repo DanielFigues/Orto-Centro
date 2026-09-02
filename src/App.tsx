@@ -3,8 +3,17 @@ import { Hero } from './components/layout/Hero'
 import { Sidebar } from './components/layout/Sidebar'
 import { Footer } from './components/layout/Footer'
 import { HomePage } from './pages/HomePage'
+import { AdminPage } from './pages/AdminPage'
+
+const isAdminRoute =
+  typeof window !== 'undefined' &&
+  window.location.pathname.replace(/\/+$/, '') === '/admin'
 
 function App() {
+  if (isAdminRoute) {
+    return <AdminPage />
+  }
+
   return (
     <div className="flex min-h-svh flex-col">
       <Header />

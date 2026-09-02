@@ -6,20 +6,22 @@
 
 export const sectionLinks: SectionLink[] = [
   { id: 'inicio', label: 'Início', icon: 'home' },
-  { id: 'mobilidade', label: 'Mobilidade', icon: 'wheelchair' },
-  { id: 'banho-higiene', label: 'Banho e Higiene', icon: 'shower' },
-  { id: 'vida-diaria', label: 'Vida Diária', icon: 'spoon' },
-  { id: 'aposio-postural', label: 'Apoio Postural', icon: 'cushion' },
-  { id: 'acessorios', label: 'Acessórios', icon: 'tools' },
+  { id: 'categoria-mobilidade', label: 'Mobilidade', icon: 'wheelchair' },
+  { id: 'categoria-banho-higiene', label: 'Banho e Higiene', icon: 'shower' },
+  { id: 'categoria-vida-diaria', label: 'Vida Diária', icon: 'spoon' },
+  { id: 'categoria-aposio-postural', label: 'Apoio Postural', icon: 'cushion' },
+  { id: 'categoria-acessorios', label: 'Acessórios', icon: 'tools' },
   { id: 'contato', label: 'Contato', icon: 'phone' },
 ]
 
 export const contact = {
   phone: '(11) 4000-0000',
   phoneHref: 'tel:+551140000000',
-  whatsapp: '(11) 98765-4321',
-  whatsappHref: 'https://wa.me/5511987654321',
-  email: 'contato@cuidarbem.com.br',
-  emailHref: 'mailto:contato@cuidarbem.com.br',
-  hours: 'Segunda a sexta, das 8h às 18h. Sábado, das 8h às 12h.',
+  whatsapp: '(38) 3221-1409',
+  whatsappHref: 'https://wa.me/553832211409',
+  email: 'contato@ortocentro.com.br',
+  emailHref: 'mailto:contato@ortocentro.com.br',
+  hours: 'Segunda a sexta, das 8:30h às 18h. Sábado, das 8:30h às 12h.',
+  address: 'Av. Mestra Fininha Silveira, 565 - Centro, Montes Claros - MG, 39401-074',
+  addressHref: 'https://maps.google.com/?q=Av.+Mestra+Fininha+Silveira,+565,+Centro,+Montes+Claros+-+MG',
 }

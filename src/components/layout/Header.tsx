@@ -45,13 +45,13 @@ export function Header() {
         }`}
       >
         <div className="mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
-          <a href="#inicio" className="flex items-center gap-2.5" aria-label="Cuidar Bem - Voltar ao início">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-600 text-white dark:bg-sky-500 dark:text-white">
+          <a href="#inicio" className="flex items-center gap-2.5" aria-label="Orto Centro- Voltar ao início">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-800 text-white dark:bg-blue-500 dark:text-white">
               <Icon name="heart" className="h-5 w-5" />
             </span>
-            <span className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white">
-              Cuidar
-              <span className="text-neutral-400 dark:text-neutral-500">Bem</span>
+            <span className="text-xl font-bold tracking-tight text-blue-800 dark:text-blue-400">
+              Orto
+              <span className="text-green-600 dark:text-green-500">Centro</span>
             </span>
           </a>
 
