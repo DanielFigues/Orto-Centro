@@ -1,16 +1,8 @@
-﻿export interface Category {
-  id: string
+﻿export interface Product {
+  id: number
   name: string
-  description: string
-  icon: string
-  gradient: string
-}
-
-export interface Product {
-  id: string
-  name: string
-  description: string
-  categoryId: string
-  image: string
-  imageUrl?: string
+  category: string
+  subcategory: string
+  image_url: string
+  is_active: boolean
 }

@@ -6,6 +6,7 @@ export interface AdminProduct {
   id: number
   name: string
   category: string
+  subcategory: string
   image_url: string
   is_active: boolean
 }
@@ -13,6 +14,7 @@ export interface AdminProduct {
 export interface AdminProductInput {
   name: string
   category: string
+  subcategory?: string
   image_url?: string
   is_active?: boolean
 }

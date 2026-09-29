@@ -30,7 +30,7 @@ export function Sidebar() {
 
         {!collapsed && (
           <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
-            Categorias
+            Seções
           </p>
         )}
 

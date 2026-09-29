@@ -11,10 +11,16 @@ function migrate(PDO $pdo): void
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             category TEXT NOT NULL,
+            subcategory TEXT NOT NULL DEFAULT \'\',
             image_url TEXT NOT NULL DEFAULT \'\',
             is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1))
         );'
     );
+
+    $columns = $pdo->query('PRAGMA table_info(products)')->fetchAll(PDO::FETCH_COLUMN, 1);
+    if (!in_array('subcategory', $columns, true)) {
+        $pdo->exec("ALTER TABLE products ADD COLUMN subcategory TEXT NOT NULL DEFAULT ''");
+    }
 }
 
 function seed(PDO $pdo): void
@@ -25,26 +31,27 @@ function seed(PDO $pdo): void
     }
 
     $stmt = $pdo->prepare(
-        'INSERT INTO products (name, category, image_url, is_active)
-         VALUES (:name, :category, :image_url, :is_active)'
+        'INSERT INTO products (name, category, subcategory, image_url, is_active)
+         VALUES (:name, :category, :subcategory, :image_url, :is_active)'
     );
 
     $rows = [
-        ['Cadeira de Rodas Standard', 'Mobilidade', 'https://example.com/img/cadeira-rodas-standard.jpg', 1],
-        ['Cadeira de Rodas Todo-Terreno', 'Mobilidade', 'https://example.com/img/cadeira-rodas-todoterreno.jpg', 1],
-        ['Andador Fixo Dobrável', 'Mobilidade', 'https://example.com/img/andador-fixo.jpg', 1],
-        ['Assento de Banho Reversível', 'Banho e Higiene', 'https://example.com/img/assento-banho.jpg', 1],
-        ['Barra de Apoio para Banheiro', 'Banho e Higiene', 'https://example.com/img/corrimao-banheiro.jpg', 0],
-        ['Kit de Talheres com Cabo Engrossado', 'Vida Diária', 'https://example.com/img/talheres-engrossados.jpg', 1],
-        ['Almofada Antiescaras', 'Apoio Postural', 'https://example.com/img/almofada-assento.jpg', 1],
-        ['Almofada Postural Multiuso', 'Apoio Postural', 'https://example.com/img/almofada-postural.jpg', 1],
-        ['Capa de Chuva para Cadeira de Rodas', 'Acessórios', 'https://example.com/img/capa-chuva-cadeira.jpg', 1],
+        ['Cadeira de Rodas Standard', 'Mobilidade', 'Cadeiras de Rodas', 'https://example.com/img/cadeira-rodas-standard.jpg', 1],
+        ['Cadeira de Rodas Todo-Terreno', 'Mobilidade', 'Cadeiras de Rodas', 'https://example.com/img/cadeira-rodas-todoterreno.jpg', 1],
+        ['Andador Fixo Dobrável', 'Mobilidade', 'Andadores', 'https://example.com/img/andador-fixo.jpg', 1],
+        ['Assento de Banho Reversível', 'Banho e Higiene', 'Banho', 'https://example.com/img/assento-banho.jpg', 1],
+        ['Barra de Apoio para Banheiro', 'Banho e Higiene', 'Banho', 'https://example.com/img/corrimao-banheiro.jpg', 0],
+        ['Kit de Talheres com Cabo Engrossado', 'Vida Diária', 'Alimentação', 'https://example.com/img/talheres-engrossados.jpg', 1],
+        ['Almofada Antiescaras', 'Apoio Postural', 'Assentos', 'https://example.com/img/almofada-assento.jpg', 1],
+        ['Almofada Postural Multiuso', 'Apoio Postural', 'Assentos', 'https://example.com/img/almofada-postural.jpg', 1],
+        ['Capa de Chuva para Cadeira de Rodas', 'Acessórios', 'Cadeiras de Rodas', 'https://example.com/img/capa-chuva-cadeira.jpg', 1],
     ];
 
-    foreach ($rows as [$name, $category, $image_url, $is_active]) {
+    foreach ($rows as [$name, $category, $subcategory, $image_url, $is_active]) {
         $stmt->execute([
             ':name' => $name,
             ':category' => $category,
+            ':subcategory' => $subcategory,
             ':image_url' => $image_url,
             ':is_active' => $is_active,
         ]);
