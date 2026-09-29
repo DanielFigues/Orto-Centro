@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/database.php';
 
-const API_TOKEN = 'change-me-to-a-secret-token';
+const API_TOKEN = 'senha123';
 
 header('Content-Type: application/json');
 
@@ -106,6 +106,13 @@ $pdo = db();
 
 if ($path === '/products' && $method === 'GET') {
     $rows = $pdo->query('SELECT * FROM products WHERE is_active = 1 ORDER BY id')->fetchAll();
+    respond(200, array_map('product_row', $rows));
+}
+
+if ($path === '/products/all' && $method === 'GET') {
+    require_auth();
+
+    $rows = $pdo->query('SELECT * FROM products ORDER BY id')->fetchAll();
     respond(200, array_map('product_row', $rows));
 }
 
