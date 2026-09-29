@@ -1,27 +1,40 @@
-﻿import type { ReactNode } from 'react'
+﻿import { useState, type ReactNode } from 'react'
 import { useTheme } from '../../hooks/useTheme'
-import { products } from '../../data/products'
+import { heroProducts } from '../../data/products'
+import type { Product } from '../../types/product'
 import GridMotion from '../bits/GridMotion'
 import SpecularButton from '../bits/SpecularButton'
 import SplitText from '../bits/SplitText'
 import { Icon } from '../ui/Icon'
 
-function buildGridItems(): ReactNode[] {
-  const tiles = products.map((product) =>
-    product.imageUrl
-      ? product.imageUrl
-      : (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-1.5 p-2">
-            <Icon
-              name={product.image}
-              className="h-6 w-6 text-sky-600 dark:text-sky-400"
-            />
-            <span className="line-clamp-1 max-w-full text-xs font-medium text-neutral-700 dark:text-neutral-300">
-              {product.name}
-            </span>
-          </div>
-        ),
+function HeroTile({ product }: { product: Product }) {
+  const [hasImageError, setHasImageError] = useState(false)
+
+  if (product.image_url === '' || hasImageError) {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center gap-1.5 p-2">
+        <Icon name="tools" className="h-6 w-6 text-sky-600 dark:text-sky-400" />
+        <span className="line-clamp-1 max-w-full text-xs font-medium text-neutral-700 dark:text-neutral-300">
+          {product.name}
+        </span>
+      </div>
+    )
+  }
+
+  return (
+    <img
+      src={product.image_url}
+      alt={product.name}
+      loading="lazy"
+      decoding="async"
+      onError={() => setHasImageError(true)}
+      className="h-full w-full object-cover"
+    />
   )
+}
+
+function buildGridItems(): ReactNode[] {
+  const tiles = heroProducts.map((product) => <HeroTile key={product.id} product={product} />)
 
   return Array.from({ length: 28 }, (_, index) => tiles[index % tiles.length])
 }
@@ -78,7 +91,7 @@ export function Hero() {
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <SpecularButton
-              href="#categoria-mobilidade"
+href="#catalogo"
               size="md"
               tint="#0284c7"
               tintOpacity={1}
@@ -112,7 +125,7 @@ export function Hero() {
       </div>
 
       <a
-        href="#categoria-mobilidade"
+        href="#catalogo"
         className="absolute bottom-6 left-1/2 z-20 -translate-x-1/2 text-neutral-500 transition-colors hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
         aria-label="Ver produtos"
       >

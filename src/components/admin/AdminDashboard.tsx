@@ -15,6 +15,7 @@ interface AdminDashboardProps {
 interface FormState {
   name: string
   category: string
+  subcategory: string
   imageUrl: string
   isActive: boolean
 }
@@ -22,6 +23,7 @@ interface FormState {
 const EMPTY_FORM: FormState = {
   name: '',
   category: '',
+  subcategory: '',
   imageUrl: '',
   isActive: true,
 }
@@ -83,6 +85,7 @@ export function AdminDashboard({ onLock }: AdminDashboardProps) {
       const { product } = await createProduct({
         name,
         category,
+        subcategory: form.subcategory.trim() || undefined,
         image_url: form.imageUrl.trim() || undefined,
         is_active: form.isActive,
       })
@@ -172,6 +175,21 @@ export function AdminDashboard({ onLock }: AdminDashboardProps) {
                   setForm((prev) => ({ ...prev, category: e.target.value }))
                 }
                 placeholder="Ex.: Mobilidade"
+                className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors placeholder:text-neutral-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:placeholder:text-neutral-600"
+              />
+            </label>
+
+            <label className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                Subcategoria
+              </span>
+              <input
+                type="text"
+                value={form.subcategory}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, subcategory: e.target.value }))
+                }
+                placeholder="Ex.: Cadeiras de Rodas"
                 className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition-colors placeholder:text-neutral-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:placeholder:text-neutral-600"
               />
             </label>
@@ -280,7 +298,10 @@ export function AdminDashboard({ onLock }: AdminDashboardProps) {
                       {product.name}
                     </p>
                     <p className="mt-0.5 flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
-                      <span className="truncate">#{product.id} · {product.category}</span>
+                      <span className="truncate">
+                        #{product.id} · {product.category}
+                        {product.subcategory !== '' ? ` / ${product.subcategory}` : ''}
+                      </span>
                       <span
                         className={`shrink-0 rounded-full px-2 py-0.5 font-semibold ${
                           product.is_active

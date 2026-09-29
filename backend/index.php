@@ -73,6 +73,7 @@ function product_row(array $row): array
         'id' => (int) $row['id'],
         'name' => $row['name'],
         'category' => $row['category'],
+        'subcategory' => (string) ($row['subcategory'] ?? ''),
         'image_url' => $row['image_url'],
         'is_active' => (bool) $row['is_active'],
     ];
@@ -114,6 +115,7 @@ if ($path === '/products' && $method === 'POST') {
     $data = body();
     $name = trim((string) ($data['name'] ?? ''));
     $category = trim((string) ($data['category'] ?? ''));
+    $subcategory = trim((string) ($data['subcategory'] ?? ''));
     $imageUrl = trim((string) ($data['image_url'] ?? ''));
 
     if ($name === '') {
@@ -128,12 +130,13 @@ if ($path === '/products' && $method === 'POST') {
     $isActive = isset($data['is_active']) ? (bool) $data['is_active'] : true;
 
     $stmt = $pdo->prepare(
-        'INSERT INTO products (name, category, image_url, is_active)
-         VALUES (:name, :category, :image_url, :is_active)'
+        'INSERT INTO products (name, category, subcategory, image_url, is_active)
+         VALUES (:name, :category, :subcategory, :image_url, :is_active)'
     );
     $stmt->execute([
         ':name' => $name,
         ':category' => $category,
+        ':subcategory' => $subcategory,
         ':image_url' => $imageUrl,
         ':is_active' => $isActive ? 1 : 0,
     ]);

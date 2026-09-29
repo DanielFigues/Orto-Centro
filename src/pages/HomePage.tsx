@@ -1,4 +1,4 @@
-﻿import { ProductGrid } from '../components/catalog/ProductGrid'
+﻿import { Catalog } from '../components/Catalog'
 import FadeContent from '../components/bits/FadeContent'
 import SpotlightCard from '../components/bits/SpotlightCard'
 import { Icon } from '../components/ui/Icon'
@@ -34,7 +34,7 @@ const contactItems = [
 export function HomePage() {
   return (
     <>
-      <ProductGrid />
+      <Catalog />
 
       <section id="contato" className="scroll-mt-40 pt-14">
         <FadeContent>

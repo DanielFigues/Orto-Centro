@@ -6,11 +6,7 @@
 
 export const sectionLinks: SectionLink[] = [
   { id: 'inicio', label: 'Início', icon: 'home' },
-  { id: 'categoria-mobilidade', label: 'Mobilidade', icon: 'wheelchair' },
-  { id: 'categoria-banho-higiene', label: 'Banho e Higiene', icon: 'shower' },
-  { id: 'categoria-vida-diaria', label: 'Vida Diária', icon: 'spoon' },
-  { id: 'categoria-aposio-postural', label: 'Apoio Postural', icon: 'cushion' },
-  { id: 'categoria-acessorios', label: 'Acessórios', icon: 'tools' },
+  { id: 'catalogo', label: 'Catálogo', icon: 'tools' },
   { id: 'contato', label: 'Contato', icon: 'phone' },
 ]
 
