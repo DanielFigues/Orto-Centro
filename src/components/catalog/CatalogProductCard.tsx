@@ -10,8 +10,15 @@ export function CatalogProductCard({ product }: CatalogProductCardProps) {
   const [hasImageError, setHasImageError] = useState(false)
   const showImage = product.image_url !== '' && !hasImageError
 
+  const handleClick = () => {
+    window.location.href = `/produto/${product.id}`
+  }
+
   return (
-    <article className="product-card group flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900 dark:hover:shadow-lg">
+    <article
+      className="product-card group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900 dark:hover:shadow-lg"
+      onClick={handleClick}
+    >
       <div className="product-card-media flex h-48 shrink-0 items-center justify-center overflow-hidden bg-neutral-100 dark:bg-neutral-800">
         {showImage ? (
           <img

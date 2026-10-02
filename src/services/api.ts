@@ -17,6 +17,11 @@ export interface ProductInput {
   category: string
   subcategory?: string
   image_url?: string
+  image_url_2?: string
+  image_url_3?: string
+  description?: string
+  brand?: string
+  sizes?: string
   is_active?: boolean
 }
 
@@ -42,6 +47,11 @@ function parseProduct(value: unknown): Product | null {
     category,
     subcategory: toText(value.subcategory),
     image_url: toText(value.image_url),
+    image_url_2: toText(value.image_url_2),
+    image_url_3: toText(value.image_url_3),
+    description: toText(value.description),
+    brand: toText(value.brand),
+    sizes: toText(value.sizes),
     is_active: value.is_active === true || value.is_active === 1,
   }
 }
@@ -70,7 +80,7 @@ async function request<T>(
   path: string,
   options: {
     token?: string
-    method?: 'POST' | 'DELETE'
+    method?: 'POST' | 'DELETE' | 'PUT'
     body?: unknown
     signal?: AbortSignal
     fallbackMessage: string
@@ -163,4 +173,27 @@ export async function deleteProduct(id: number, token: string): Promise<void> {
     method: 'DELETE',
     fallbackMessage: 'Não foi possível excluir o produto.',
   })
+}
+
+export async function updateProduct(
+  id: number,
+  data: Partial<ProductInput>,
+  token: string,
+): Promise<Product> {
+  const payload = await request<{ product?: unknown }>(
+    `/products/${id}`,
+    {
+      token,
+      method: 'PUT',
+      body: data,
+      fallbackMessage: 'Não foi possível atualizar o produto.',
+    },
+  )
+
+  const product = parseProduct(payload?.product)
+  if (product === null) {
+    throw new ApiError(200, 'Resposta inválida do servidor.')
+  }
+
+  return product
 }
