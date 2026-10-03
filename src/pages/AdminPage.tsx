@@ -67,7 +67,7 @@ export function AdminPage() {
 
   return (
     <ToastProvider>
-      <div className="min-h-svh px-4 py-10 sm:px-6">
+      <div className="min-h-svh bg-gray-50 px-4 py-10 sm:px-6">
         {session.status === 'validating' ? (
           <div className="flex min-h-[60svh] items-center justify-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
             <span className="h-5 w-5 animate-spin rounded-full border-2 border-sky-500/30 border-t-sky-600" />

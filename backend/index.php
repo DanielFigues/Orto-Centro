@@ -84,6 +84,65 @@ function product_row(array $row): array
     ];
 }
 
+function generate_filename(string $ext): string
+{
+    return 'img_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+}
+
+function save_base64_image(string $base64, string $fieldName): string
+{
+    if (strpos($base64, 'data:image/') === 0) {
+        $parts = explode(',', $base64, 2);
+        if (count($parts) !== 2) {
+            fail(400, "Invalid $fieldName data");
+        }
+        $header = $parts[0];
+        if (preg_match('#data:image/(.+?);base64#i', $header, $m) !== 1) {
+            preg_match('#data:image/(.+?)#i', $header, $m);
+        }
+        $ext = isset($m[1]) ? strtolower($m[1]) : 'png';
+        $data = base64_decode($parts[1], true);
+    } else {
+        $data = base64_decode($base64, true);
+        $ext = 'png';
+    }
+
+    if ($data === false) {
+        fail(400, "Invalid $fieldName data");
+    }
+
+    $uploadsDir = __DIR__ . '/../public/uploads';
+    if (!is_dir($uploadsDir)) {
+        mkdir($uploadsDir, 0775, true);
+    }
+
+    $filename = generate_filename($ext === 'jpeg' ? 'jpg' : $ext);
+    $filepath = $uploadsDir . '/' . $filename;
+    if (file_put_contents($filepath, $data) === false) {
+        fail(500, "Failed to save $fieldName");
+    }
+
+    return '/uploads/' . $filename;
+}
+
+function process_image_field(?string $value, string $fieldName): string
+{
+    if ($value === null || trim($value) === '') {
+        return '';
+    }
+    $value = trim($value);
+
+    if (strpos($value, 'data:image/') === 0 || (!filter_var($value, FILTER_VALIDATE_URL) && preg_match('#^[A-Za-z0-9+/=]+$#', $value) && strlen($value) > 100)) {
+        return save_base64_image($value, $fieldName);
+    }
+
+    if (filter_var($value, FILTER_VALIDATE_URL) !== false) {
+        return $value;
+    }
+
+    return $value;
+}
+
 function body(): array
 {
     $raw = file_get_contents('php://input');
@@ -124,13 +183,14 @@ if ($path === '/products/all' && $method === 'GET') {
 if ($path === '/products' && $method === 'POST') {
     require_auth();
 
+    try {
     $data = body();
     $name = trim((string) ($data['name'] ?? ''));
     $category = trim((string) ($data['category'] ?? ''));
     $subcategory = trim((string) ($data['subcategory'] ?? ''));
-    $imageUrl = trim((string) ($data['image_url'] ?? ''));
-    $imageUrl2 = trim((string) ($data['image_url_2'] ?? ''));
-    $imageUrl3 = trim((string) ($data['image_url_3'] ?? ''));
+    $imageUrl = process_image_field(isset($data['image_url']) ? (string) $data['image_url'] : '', 'image_url');
+    $imageUrl2 = process_image_field(isset($data['image_url_2']) ? (string) $data['image_url_2'] : '', 'image_url_2');
+    $imageUrl3 = process_image_field(isset($data['image_url_3']) ? (string) $data['image_url_3'] : '', 'image_url_3');
     $description = trim((string) ($data['description'] ?? ''));
     $brand = trim((string) ($data['brand'] ?? ''));
     $sizes = trim((string) ($data['sizes'] ?? ''));
@@ -140,15 +200,6 @@ if ($path === '/products' && $method === 'POST') {
     }
     if ($category === '') {
         fail(400, 'category is required');
-    }
-    if ($imageUrl !== '' && filter_var($imageUrl, FILTER_VALIDATE_URL) === false) {
-        fail(400, 'image_url must be a valid URL');
-    }
-    if ($imageUrl2 !== '' && filter_var($imageUrl2, FILTER_VALIDATE_URL) === false) {
-        fail(400, 'image_url_2 must be a valid URL');
-    }
-    if ($imageUrl3 !== '' && filter_var($imageUrl3, FILTER_VALIDATE_URL) === false) {
-        fail(400, 'image_url_3 must be a valid URL');
     }
     $isActive = isset($data['is_active']) ? (bool) $data['is_active'] : true;
 
@@ -171,80 +222,82 @@ if ($path === '/products' && $method === 'POST') {
 
     $row = $pdo->query('SELECT * FROM products WHERE id = ' . (int) $pdo->lastInsertId())->fetch();
     respond(201, ['product' => product_row($row)]);
+    } catch (Throwable $e) {
+        fail(500, $e->getMessage() ?: 'Internal server error');
+    }
 }
 
 if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'DELETE') {
     require_auth();
 
-    $stmt = $pdo->prepare('DELETE FROM products WHERE id = :id');
-    $stmt->execute([':id' => (int) $m[1]]);
-    if ($stmt->rowCount() === 0) {
-        fail(404, 'Product not found');
+    try {
+        $stmt = $pdo->prepare('DELETE FROM products WHERE id = :id');
+        $stmt->execute([':id' => (int) $m[1]]);
+        if ($stmt->rowCount() === 0) {
+            fail(404, 'Product not found');
+        }
+        respond(204, []);
+    } catch (Throwable $e) {
+        fail(500, 'Internal server error');
     }
-    respond(204, []);
 }
 
 if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'PUT') {
     require_auth();
 
-    $data = body();
-    $id = (int) $m[1];
-    $stmt = $pdo->prepare('SELECT * FROM products WHERE id = :id');
-    $stmt->execute([':id' => $id]);
-    $existing = $stmt->fetch();
-    if (!$existing) {
-        fail(404, 'Product not found');
-    }
+    try {
+        $data = body();
+        $id = (int) $m[1];
+        $stmt = $pdo->prepare('SELECT * FROM products WHERE id = :id');
+        $stmt->execute([':id' => $id]);
+        $existing = $stmt->fetch();
+        if (!$existing) {
+            fail(404, 'Product not found');
+        }
 
-    $name = array_key_exists('name', $data) ? trim((string) ($data['name'] ?? '')) : (string) $existing['name'];
-    $category = array_key_exists('category', $data) ? trim((string) ($data['category'] ?? '')) : (string) $existing['category'];
-    $subcategory = array_key_exists('subcategory', $data) ? trim((string) ($data['subcategory'] ?? '')) : (string) ($existing['subcategory'] ?? '');
-    $imageUrl = array_key_exists('image_url', $data) ? trim((string) ($data['image_url'] ?? '')) : (string) ($existing['image_url'] ?? '');
-    $imageUrl2 = array_key_exists('image_url_2', $data) ? trim((string) ($data['image_url_2'] ?? '')) : (string) ($existing['image_url_2'] ?? '');
-    $imageUrl3 = array_key_exists('image_url_3', $data) ? trim((string) ($data['image_url_3'] ?? '')) : (string) ($existing['image_url_3'] ?? '');
-    $description = array_key_exists('description', $data) ? trim((string) ($data['description'] ?? '')) : (string) ($existing['description'] ?? '');
-    $brand = array_key_exists('brand', $data) ? trim((string) ($data['brand'] ?? '')) : (string) ($existing['brand'] ?? '');
-    $sizes = array_key_exists('sizes', $data) ? trim((string) ($data['sizes'] ?? '')) : (string) ($existing['sizes'] ?? '');
-    $isActive = array_key_exists('is_active', $data) ? (bool) $data['is_active'] : (bool) $existing['is_active'];
+        $name = array_key_exists('name', $data) ? trim((string) ($data['name'] ?? '')) : (string) $existing['name'];
+        $category = array_key_exists('category', $data) ? trim((string) ($data['category'] ?? '')) : (string) $existing['category'];
+        $subcategory = array_key_exists('subcategory', $data) ? trim((string) ($data['subcategory'] ?? '')) : (string) ($existing['subcategory'] ?? '');
+        $imageUrl = array_key_exists('image_url', $data) ? process_image_field((string) $data['image_url'], 'image_url') : (string) ($existing['image_url'] ?? '');
+        $imageUrl2 = array_key_exists('image_url_2', $data) ? process_image_field((string) $data['image_url_2'], 'image_url_2') : (string) ($existing['image_url_2'] ?? '');
+        $imageUrl3 = array_key_exists('image_url_3', $data) ? process_image_field((string) $data['image_url_3'], 'image_url_3') : (string) ($existing['image_url_3'] ?? '');
+        $description = array_key_exists('description', $data) ? trim((string) ($data['description'] ?? '')) : (string) ($existing['description'] ?? '');
+        $brand = array_key_exists('brand', $data) ? trim((string) ($data['brand'] ?? '')) : (string) ($existing['brand'] ?? '');
+        $sizes = array_key_exists('sizes', $data) ? trim((string) ($data['sizes'] ?? '')) : (string) ($existing['sizes'] ?? '');
+        $isActive = array_key_exists('is_active', $data) ? (bool) $data['is_active'] : (bool) $existing['is_active'];
 
-    if ($name === '') {
-        fail(400, 'name is required');
-    }
-    if ($category === '') {
-        fail(400, 'category is required');
-    }
-    if ($imageUrl !== '' && filter_var($imageUrl, FILTER_VALIDATE_URL) === false) {
-        fail(400, 'image_url must be a valid URL');
-    }
-    if ($imageUrl2 !== '' && filter_var($imageUrl2, FILTER_VALIDATE_URL) === false) {
-        fail(400, 'image_url_2 must be a valid URL');
-    }
-    if ($imageUrl3 !== '' && filter_var($imageUrl3, FILTER_VALIDATE_URL) === false) {
-        fail(400, 'image_url_3 must be a valid URL');
-    }
+        if ($name === '') {
+            fail(400, 'name is required');
+        }
+        if ($category === '') {
+            fail(400, 'category is required');
+        }
 
-    $update = $pdo->prepare(
-        'UPDATE products SET name = :name, category = :category, subcategory = :subcategory,
-         image_url = :image_url, image_url_2 = :image_url_2, image_url_3 = :image_url_3,
-         description = :description, brand = :brand, sizes = :sizes, is_active = :is_active
-         WHERE id = :id'
-    );
-    $update->execute([
-        ':name' => $name,
-        ':category' => $category,
-        ':subcategory' => $subcategory,
-        ':image_url' => $imageUrl,
-        ':image_url_2' => $imageUrl2,
-        ':image_url_3' => $imageUrl3,
-        ':description' => $description,
-        ':brand' => $brand,
-        ':sizes' => $sizes,
-        ':is_active' => $isActive ? 1 : 0,
-        ':id' => $id,
-    ]);
+        $update = $pdo->prepare(
+            'UPDATE products SET name = :name, category = :category, subcategory = :subcategory,
+             image_url = :image_url, image_url_2 = :image_url_2, image_url_3 = :image_url_3,
+             description = :description, brand = :brand, sizes = :sizes, is_active = :is_active
+             WHERE id = :id'
+        );
+        $update->execute([
+            ':name' => $name,
+            ':category' => $category,
+            ':subcategory' => $subcategory,
+            ':image_url' => $imageUrl,
+            ':image_url_2' => $imageUrl2,
+            ':image_url_3' => $imageUrl3,
+            ':description' => $description,
+            ':brand' => $brand,
+            ':sizes' => $sizes,
+            ':is_active' => $isActive ? 1 : 0,
+            ':id' => $id,
+        ]);
 
-    $row = $pdo->query('SELECT * FROM products WHERE id = ' . $id)->fetch();
-    respond(200, ['product' => product_row($row)]);
+        $row = $pdo->query('SELECT * FROM products WHERE id = ' . $id)->fetch();
+        respond(200, ['product' => product_row($row)]);
+    } catch (Throwable $e) {
+        fail(500, 'Internal server error');
+    }
 }
 
 fail(405, 'Method not allowed');

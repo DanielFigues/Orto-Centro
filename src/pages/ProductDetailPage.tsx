@@ -92,7 +92,7 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
       <main className="flex-1 px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-6xl">
           <nav className="mb-6 text-sm text-neutral-600 dark:text-neutral-400">
-            <span>Início</span> / <span>{product.category}</span>
+            <a href="/" className="hover:text-neutral-900 dark:hover:text-neutral-200">Início</a> / <span>{product.category}</span>
             {product.subcategory && <> / <span>{product.subcategory}</span></>}
           </nav>
 
@@ -138,20 +138,9 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
             </div>
 
             <div className="space-y-6">
-              <div>
-                <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
-                  {product.name}
-                </h1>
-                <div className="mt-2 flex items-center gap-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Icon
-                      key={star}
-                      name="star"
-                      className="h-5 w-5 fill-yellow-400 text-yellow-400"
-                    />
-                  ))}
-                </div>
-              </div>
+              <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
+                {product.name}
+              </h1>
 
               {product.brand && (
                 <div>

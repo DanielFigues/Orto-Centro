@@ -16,9 +16,9 @@ export interface ProductInput {
   name: string
   category: string
   subcategory?: string
-  image_url?: string
-  image_url_2?: string
-  image_url_3?: string
+  image_url?: string | File
+  image_url_2?: string | File
+  image_url_3?: string | File
   description?: string
   brand?: string
   sizes?: string
@@ -76,6 +76,54 @@ function failureMessage(response: Response, payload: unknown, fallback: string):
   return fallback
 }
 
+async function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
+async function prepareBody(body: unknown): Promise<{ body: BodyInit | undefined; contentType: string | undefined }> {
+  if (body === undefined) {
+    return { body: undefined, contentType: undefined }
+  }
+
+  const hasFile = (obj: unknown): boolean => {
+    if (obj instanceof File) return true
+    if (Array.isArray(obj)) return obj.some(hasFile)
+    if (isRecord(obj)) {
+      return Object.values(obj).some(hasFile)
+    }
+    return false
+  }
+
+  if (hasFile(body)) {
+    const processed = await processObject(body)
+    return { body: JSON.stringify(processed), contentType: 'application/json' }
+  }
+
+  return { body: JSON.stringify(body), contentType: 'application/json' }
+}
+
+async function processObject(obj: unknown): Promise<unknown> {
+  if (obj instanceof File) {
+    return await fileToBase64(obj)
+  }
+  if (Array.isArray(obj)) {
+    return await Promise.all(obj.map(processObject))
+  }
+  if (isRecord(obj)) {
+    const result: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(obj)) {
+      result[key] = await processObject(value)
+    }
+    return result
+  }
+  return obj
+}
+
 async function request<T>(
   path: string,
   options: {
@@ -88,6 +136,8 @@ async function request<T>(
 ): Promise<T> {
   const { token, method, body, signal, fallbackMessage } = options
 
+  const { body: preparedBody, contentType } = await prepareBody(body)
+
   let response: Response
   try {
     response = await fetch(`${API_BASE}${path}`, {
@@ -95,10 +145,10 @@ async function request<T>(
       signal,
       headers: {
         Accept: 'application/json',
-        ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+        ...(contentType === undefined ? {} : { 'Content-Type': contentType }),
         ...(token === undefined ? {} : { Authorization: `Bearer ${token}` }),
       },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: preparedBody,
     })
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
