@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { Product } from '../../types/product'
 import { Icon } from '../ui/Icon'
 
@@ -8,10 +9,11 @@ interface CatalogProductCardProps {
 
 export function CatalogProductCard({ product }: CatalogProductCardProps) {
   const [hasImageError, setHasImageError] = useState(false)
+  const navigate = useNavigate()
   const showImage = product.image_url !== '' && !hasImageError
 
   const handleClick = () => {
-    window.location.href = `/produto/${product.id}`
+    navigate(`/produto/${product.id}`)
   }
 
   return (

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   ApiError,
   addProduct,
@@ -190,12 +191,12 @@ export function AdminDashboard({ token, onLock }: AdminDashboardProps) {
             </p>
           </div>
           <div className="flex gap-2">
-            <a
-              href="/"
+            <Link
+              to="/"
               className="inline-flex items-center gap-2 rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-600/30 transition-all hover:-translate-y-0.5 hover:bg-cyan-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50"
             >
               ← Voltar para a Loja
-            </a>
+            </Link>
             <button
               type="button"
               onClick={onLock}

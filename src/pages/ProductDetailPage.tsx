@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import type { Product } from '../types/product'
 import { fetchProducts } from '../services/api'
 import { Icon } from '../components/ui/Icon'
@@ -92,7 +93,7 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
       <main className="flex-1 px-4 py-8 sm:px-6">
         <div className="mx-auto max-w-6xl">
           <nav className="mb-6 text-sm text-neutral-600 dark:text-neutral-400">
-            <a href="/" className="hover:text-neutral-900 dark:hover:text-neutral-200">Início</a> / <span>{product.category}</span>
+            <Link to="/" className="hover:text-neutral-900 dark:hover:text-neutral-200">Início</Link> / <span>{product.category}</span>
             {product.subcategory && <> / <span>{product.subcategory}</span></>}
           </nav>
 
@@ -152,12 +153,6 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
                   </span>
                 </div>
               )}
-
-              <div>
-                <button className="w-full rounded-lg bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-500 dark:hover:bg-blue-600 sm:w-auto">
-                  Cotar preços
-                </button>
-              </div>
 
               {sizes.length > 0 && (
                 <div className="space-y-3">
