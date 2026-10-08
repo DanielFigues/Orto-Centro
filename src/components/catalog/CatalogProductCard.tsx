@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { contact } from '../../data/sections'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { Product } from '../../types/product'
 import { Icon } from '../ui/Icon'
 
@@ -7,22 +7,20 @@ interface CatalogProductCardProps {
   product: Product
 }
 
-function buildWhatsAppUrl(product: Product): string {
-  const scope = [product.category, product.subcategory].filter(Boolean).join(' / ')
-  const message = `Olá! Gostaria de mais informações sobre o produto "${product.name}" (${scope}).`
-  const url = new URL(contact.whatsappHref)
-  url.searchParams.set('text', message)
-  return url.toString()
-}
-
 export function CatalogProductCard({ product }: CatalogProductCardProps) {
   const [hasImageError, setHasImageError] = useState(false)
+  const navigate = useNavigate()
   const showImage = product.image_url !== '' && !hasImageError
 
-  const whatsappUrl = useMemo(() => buildWhatsAppUrl(product), [product])
+  const handleClick = () => {
+    navigate(`/produto/${product.id}`)
+  }
 
   return (
-    <article className="product-card group flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900 dark:hover:shadow-lg">
+    <article
+      className="product-card group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900 dark:hover:shadow-lg"
+      onClick={handleClick}
+    >
       <div className="product-card-media flex h-48 shrink-0 items-center justify-center overflow-hidden bg-neutral-100 dark:bg-neutral-800">
         {showImage ? (
           <img
@@ -55,17 +53,6 @@ export function CatalogProductCard({ product }: CatalogProductCardProps) {
             {product.subcategory}
           </p>
         )}
-
-        <a
-          className="product-card-action mt-4 inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-950"
-          href={whatsappUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={`Consultar ${product.name} no WhatsApp`}
-        >
-          <Icon name="phone" className="h-4 w-4" />
-          Consultar no WhatsApp
-        </a>
       </div>
     </article>
   )

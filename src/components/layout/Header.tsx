@@ -1,10 +1,12 @@
 ﻿import { useEffect, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { useTheme } from '../../hooks/useTheme'
 import { contact, sectionLinks } from '../../data/sections'
 import { Icon } from '../ui/Icon'
 
 export function Header() {
   const { theme, toggleTheme } = useTheme()
+  const { pathname } = useLocation()
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -45,7 +47,7 @@ export function Header() {
         }`}
       >
         <div className="mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
-          <a href="#inicio" className="flex items-center gap-2.5" aria-label="Orto Centro- Voltar ao início">
+          <Link to="/" className="flex items-center gap-2.5" aria-label="Orto Centro- Voltar ao início">
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-800 text-white dark:bg-blue-500 dark:text-white">
               <Icon name="heart" className="h-5 w-5" />
             </span>
@@ -53,7 +55,7 @@ export function Header() {
               Orto
               <span className="text-green-600 dark:text-green-500">Centro</span>
             </span>
-          </a>
+          </Link>
 
           <button
             type="button"
@@ -66,15 +68,32 @@ export function Header() {
         </div>
 
         <nav className="flex gap-1.5 overflow-x-auto px-4 pb-3 lg:hidden" aria-label="Navegação por seções">
-          {sectionLinks.map(({ id, label }) => (
-            <a
-              key={id}
-              href={`#${id}`}
-              className="whitespace-nowrap rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition-colors hover:border-neutral-400 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800"
-            >
-              {label}
-            </a>
-          ))}
+          {sectionLinks.map(({ id, label }) => {
+            const className =
+              'whitespace-nowrap rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition-colors hover:border-neutral-400 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800'
+
+            if (id === 'inicio') {
+              return (
+                <Link key={id} to="/" className={className}>
+                  {label}
+                </Link>
+              )
+            }
+
+            if (pathname === '/') {
+              return (
+                <a key={id} href={`#${id}`} className={className}>
+                  {label}
+                </a>
+              )
+            }
+
+            return (
+              <Link key={id} to={`/#${id}`} className={className}>
+                {label}
+              </Link>
+            )
+          })}
         </nav>
       </div>
     </header>
