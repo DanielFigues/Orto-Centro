@@ -16,6 +16,8 @@ function migrate(PDO $pdo): void
             image_url_2 TEXT DEFAULT \'\',
             image_url_3 TEXT DEFAULT \'\',
             description TEXT DEFAULT \'\',
+            short_description TEXT DEFAULT \'\',
+            technical_specs TEXT DEFAULT \'\',
             brand TEXT DEFAULT \'\',
             sizes TEXT DEFAULT \'\',
             is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1))
@@ -28,6 +30,12 @@ function migrate(PDO $pdo): void
     }
     if (!in_array('description', $columns, true)) {
         $pdo->exec("ALTER TABLE products ADD COLUMN description TEXT DEFAULT ''");
+    }
+    if (!in_array('short_description', $columns, true)) {
+        $pdo->exec("ALTER TABLE products ADD COLUMN short_description TEXT DEFAULT ''");
+    }
+    if (!in_array('technical_specs', $columns, true)) {
+        $pdo->exec("ALTER TABLE products ADD COLUMN technical_specs TEXT DEFAULT ''");
     }
     if (!in_array('brand', $columns, true)) {
         $pdo->exec("ALTER TABLE products ADD COLUMN brand TEXT DEFAULT ''");

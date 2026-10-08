@@ -20,6 +20,8 @@ export interface ProductInput {
   image_url_2?: string | File
   image_url_3?: string | File
   description?: string
+  short_description?: string
+  technical_specs?: string
   brand?: string
   sizes?: string
   is_active?: boolean
@@ -50,6 +52,8 @@ function parseProduct(value: unknown): Product | null {
     image_url_2: toText(value.image_url_2),
     image_url_3: toText(value.image_url_3),
     description: toText(value.description),
+    short_description: toText(value.short_description),
+    technical_specs: toText(value.technical_specs),
     brand: toText(value.brand),
     sizes: toText(value.sizes),
     is_active: value.is_active === true || value.is_active === 1,

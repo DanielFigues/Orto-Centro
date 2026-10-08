@@ -78,6 +78,8 @@ function product_row(array $row): array
         'image_url_2' => (string) ($row['image_url_2'] ?? ''),
         'image_url_3' => (string) ($row['image_url_3'] ?? ''),
         'description' => (string) ($row['description'] ?? ''),
+        'short_description' => (string) ($row['short_description'] ?? ''),
+        'technical_specs' => (string) ($row['technical_specs'] ?? ''),
         'brand' => (string) ($row['brand'] ?? ''),
         'sizes' => (string) ($row['sizes'] ?? ''),
         'is_active' => (bool) $row['is_active'],
@@ -132,6 +134,16 @@ function process_image_field(?string $value, string $fieldName): string
     }
     $value = trim($value);
 
+    // Já é uma URL de imagem (http/https) ou um arquivo previamente enviado
+    // (/uploads/...): mantenha o valor exatamente como chegou, sem tentar
+    // decodificá-lo como Base64.
+    if (str_starts_with($value, 'http://')
+        || str_starts_with($value, 'https://')
+        || str_starts_with($value, '/uploads/')
+    ) {
+        return $value;
+    }
+
     if (strpos($value, 'data:image/') === 0 || (!filter_var($value, FILTER_VALIDATE_URL) && preg_match('#^[A-Za-z0-9+/=]+$#', $value) && strlen($value) > 100)) {
         return save_base64_image($value, $fieldName);
     }
@@ -141,6 +153,29 @@ function process_image_field(?string $value, string $fieldName): string
     }
 
     return $value;
+}
+
+function delete_uploaded_file(string $imageUrl): void
+{
+    // Apenas URLs de uploads locais (/uploads/<arquivo>) possuem um arquivo
+    // físico em disco. URLs http(s) e outros valores não são tocados.
+    if (!preg_match('#^/uploads/([^/]+)$#', $imageUrl, $m)) {
+        return;
+    }
+
+    $filename = basename($m[1]);
+    $filepath = __DIR__ . '/../public/uploads/' . $filename;
+
+    if (is_file($filepath)) {
+        unlink($filepath);
+    }
+}
+
+function delete_uploaded_files(array $imageUrls): void
+{
+    foreach ($imageUrls as $url) {
+        delete_uploaded_file((string) $url);
+    }
 }
 
 function body(): array
@@ -192,20 +227,28 @@ if ($path === '/products' && $method === 'POST') {
     $imageUrl2 = process_image_field(isset($data['image_url_2']) ? (string) $data['image_url_2'] : '', 'image_url_2');
     $imageUrl3 = process_image_field(isset($data['image_url_3']) ? (string) $data['image_url_3'] : '', 'image_url_3');
     $description = trim((string) ($data['description'] ?? ''));
+    $shortDescription = trim((string) ($data['short_description'] ?? ''));
+    $technicalSpecs = trim((string) ($data['technical_specs'] ?? ''));
+    if ($technicalSpecs !== '') {
+        $decodedSpecs = json_decode($technicalSpecs, true);
+        if (!is_array($decodedSpecs)) {
+            fail(400, 'Technical specs deve ser um array JSON válido.');
+        }
+    }
     $brand = trim((string) ($data['brand'] ?? ''));
     $sizes = trim((string) ($data['sizes'] ?? ''));
 
     if ($name === '') {
-        fail(400, 'name is required');
+        fail(400, 'O nome é obrigatório.');
     }
     if ($category === '') {
-        fail(400, 'category is required');
+        fail(400, 'A categoria é obrigatória.');
     }
     $isActive = isset($data['is_active']) ? (bool) $data['is_active'] : true;
 
     $stmt = $pdo->prepare(
-        'INSERT INTO products (name, category, subcategory, image_url, image_url_2, image_url_3, description, brand, sizes, is_active)
-         VALUES (:name, :category, :subcategory, :image_url, :image_url_2, :image_url_3, :description, :brand, :sizes, :is_active)'
+        'INSERT INTO products (name, category, subcategory, image_url, image_url_2, image_url_3, description, short_description, technical_specs, brand, sizes, is_active)
+         VALUES (:name, :category, :subcategory, :image_url, :image_url_2, :image_url_3, :description, :short_description, :technical_specs, :brand, :sizes, :is_active)'
     );
     $stmt->execute([
         ':name' => $name,
@@ -215,6 +258,8 @@ if ($path === '/products' && $method === 'POST') {
         ':image_url_2' => $imageUrl2,
         ':image_url_3' => $imageUrl3,
         ':description' => $description,
+        ':short_description' => $shortDescription,
+        ':technical_specs' => $technicalSpecs,
         ':brand' => $brand,
         ':sizes' => $sizes,
         ':is_active' => $isActive ? 1 : 0,
@@ -231,11 +276,23 @@ if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'DELETE') 
     require_auth();
 
     try {
-        $stmt = $pdo->prepare('DELETE FROM products WHERE id = :id');
-        $stmt->execute([':id' => (int) $m[1]]);
-        if ($stmt->rowCount() === 0) {
-            fail(404, 'Product not found');
+        $id = (int) $m[1];
+
+        $stmt = $pdo->prepare('SELECT * FROM products WHERE id = :id');
+        $stmt->execute([':id' => $id]);
+        $existing = $stmt->fetch();
+        if (!$existing) {
+            fail(404, 'Produto não encontrado.');
         }
+
+        delete_uploaded_files([
+            $existing['image_url'],
+            $existing['image_url_2'],
+            $existing['image_url_3'],
+        ]);
+
+        $stmt = $pdo->prepare('DELETE FROM products WHERE id = :id');
+        $stmt->execute([':id' => $id]);
         respond(204, []);
     } catch (Throwable $e) {
         fail(500, 'Internal server error');
@@ -252,7 +309,7 @@ if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'PUT') {
         $stmt->execute([':id' => $id]);
         $existing = $stmt->fetch();
         if (!$existing) {
-            fail(404, 'Product not found');
+            fail(404, 'Produto não encontrado.');
         }
 
         $name = array_key_exists('name', $data) ? trim((string) ($data['name'] ?? '')) : (string) $existing['name'];
@@ -262,21 +319,36 @@ if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'PUT') {
         $imageUrl2 = array_key_exists('image_url_2', $data) ? process_image_field((string) $data['image_url_2'], 'image_url_2') : (string) ($existing['image_url_2'] ?? '');
         $imageUrl3 = array_key_exists('image_url_3', $data) ? process_image_field((string) $data['image_url_3'], 'image_url_3') : (string) ($existing['image_url_3'] ?? '');
         $description = array_key_exists('description', $data) ? trim((string) ($data['description'] ?? '')) : (string) ($existing['description'] ?? '');
+        $shortDescription = array_key_exists('short_description', $data) ? trim((string) ($data['short_description'] ?? '')) : (string) ($existing['short_description'] ?? '');
+        $technicalSpecs = array_key_exists('technical_specs', $data) ? trim((string) ($data['technical_specs'] ?? '')) : (string) ($existing['technical_specs'] ?? '');
+        if ($technicalSpecs !== '') {
+            $decodedSpecs = json_decode($technicalSpecs, true);
+            if (!is_array($decodedSpecs)) {
+                fail(400, 'Technical specs deve ser um array JSON válido.');
+            }
+        }
         $brand = array_key_exists('brand', $data) ? trim((string) ($data['brand'] ?? '')) : (string) ($existing['brand'] ?? '');
         $sizes = array_key_exists('sizes', $data) ? trim((string) ($data['sizes'] ?? '')) : (string) ($existing['sizes'] ?? '');
         $isActive = array_key_exists('is_active', $data) ? (bool) $data['is_active'] : (bool) $existing['is_active'];
 
         if ($name === '') {
-            fail(400, 'name is required');
+            fail(400, 'O nome é obrigatório.');
         }
         if ($category === '') {
-            fail(400, 'category is required');
+            fail(400, 'A categoria é obrigatória.');
         }
+
+        $previousUrls = [
+            (string) ($existing['image_url'] ?? ''),
+            (string) ($existing['image_url_2'] ?? ''),
+            (string) ($existing['image_url_3'] ?? ''),
+        ];
 
         $update = $pdo->prepare(
             'UPDATE products SET name = :name, category = :category, subcategory = :subcategory,
              image_url = :image_url, image_url_2 = :image_url_2, image_url_3 = :image_url_3,
-             description = :description, brand = :brand, sizes = :sizes, is_active = :is_active
+             description = :description, short_description = :short_description,
+             technical_specs = :technical_specs, brand = :brand, sizes = :sizes, is_active = :is_active
              WHERE id = :id'
         );
         $update->execute([
@@ -287,11 +359,22 @@ if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'PUT') {
             ':image_url_2' => $imageUrl2,
             ':image_url_3' => $imageUrl3,
             ':description' => $description,
+            ':short_description' => $shortDescription,
+            ':technical_specs' => $technicalSpecs,
             ':brand' => $brand,
             ':sizes' => $sizes,
             ':is_active' => $isActive ? 1 : 0,
             ':id' => $id,
         ]);
+
+        // Remove do disco os arquivos locais que foram substituídos ou removidos.
+        $currentUrls = [$imageUrl, $imageUrl2, $imageUrl3];
+        foreach ($previousUrls as $oldUrl) {
+            $stillInUse = in_array($oldUrl, $currentUrls, true);
+            if ($oldUrl !== '' && !$stillInUse) {
+                delete_uploaded_file($oldUrl);
+            }
+        }
 
         $row = $pdo->query('SELECT * FROM products WHERE id = ' . $id)->fetch();
         respond(200, ['product' => product_row($row)]);
@@ -300,4 +383,4 @@ if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'PUT') {
     }
 }
 
-fail(405, 'Method not allowed');
+fail(405, 'Método não permitido.');

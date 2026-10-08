@@ -20,7 +20,7 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [selectedImage, setSelectedImage] = useState<string>('')
+  const [selectedImage, setSelectedImage] = useState<{ productId: number; image: string } | null>(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -52,11 +52,10 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
     [products, productId],
   )
 
-  useEffect(() => {
-    if (product) {
-      setSelectedImage(product.image_url || '')
-    }
-  }, [product])
+  const currentImage =
+    selectedImage && selectedImage.productId === productId
+      ? selectedImage.image
+      : product?.image_url || ''
 
   const galleryImages = useMemo(() => {
     if (!product) return []
@@ -100,9 +99,9 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
           <div className="grid gap-8 lg:grid-cols-2">
             <div className="space-y-4">
               <div className="aspect-square overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-800">
-                {selectedImage ? (
+                {currentImage ? (
                   <img
-                    src={selectedImage}
+                    src={currentImage}
                     alt={product.name}
                     className="h-full w-full object-cover"
                   />
@@ -120,9 +119,9 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
                   {galleryImages.map((img) => (
                     <button
                       key={img}
-                      onClick={() => setSelectedImage(img)}
+                      onClick={() => setSelectedImage({ productId, image: img })}
                       className={`h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 ${
-                        selectedImage === img
+                        currentImage === img
                           ? 'border-sky-500 dark:border-sky-400'
                           : 'border-neutral-200 dark:border-neutral-800'
                       }`}
@@ -142,6 +141,12 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
               <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
                 {product.name}
               </h1>
+
+              {product.short_description && (
+                <p className="text-base leading-relaxed text-neutral-600 dark:text-neutral-400">
+                  {product.short_description}
+                </p>
+              )}
 
               {product.brand && (
                 <div>
@@ -179,9 +184,16 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
               <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">
                 Descrição Geral
               </h2>
-              <p className="whitespace-pre-wrap text-base text-neutral-700 dark:text-neutral-300">
-                {product.description}
-              </p>
+              {/<[a-zA-Z][^>]*>/.test(product.description) ? (
+                <div
+                  className="text-base leading-relaxed text-neutral-700 dark:text-neutral-300 [&_a]:text-sky-600 [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:pl-4 [&_blockquote]:text-neutral-500 [&_em]:italic [&_h1]:text-xl [&_h2]:text-lg [&_h3]:text-base [&_img]:my-2 [&_img]:max-w-full [&_img]:rounded-lg [&_li]:mt-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-3 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5"
+                  dangerouslySetInnerHTML={{ __html: product.description }}
+                />
+              ) : (
+                <p className="whitespace-pre-wrap text-base text-neutral-700 dark:text-neutral-300">
+                  {product.description}
+                </p>
+              )}
             </div>
           )}
         </div>

@@ -10,6 +10,7 @@ import {
 } from '../../services/api'
 import type { Product } from '../../types/product'
 import { Icon } from '../ui/Icon'
+import { ConfirmDialog } from './ConfirmDialog'
 import { ProductForm } from './ProductForm'
 import { ProductModal } from './ProductModal'
 import { useToast } from './useToast'
@@ -51,6 +52,7 @@ export function AdminDashboard({ token, onLock }: AdminDashboardProps) {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [reloadToken, setReloadToken] = useState(0)
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [filter, setFilter] = useState<FilterState>({ type: 'all', value: '' })
@@ -135,32 +137,38 @@ export function AdminDashboard({ token, onLock }: AdminDashboardProps) {
     [token, toast, refresh, onLock, editingProduct, closeModal],
   )
 
-  const handleDelete = useCallback(
-    async (product: Product) => {
-      if (!window.confirm(`Excluir o produto "${product.name}"?`)) {
+  const requestDelete = useCallback((product: Product) => {
+    setProductToDelete(product)
+  }, [])
+
+  const cancelDelete = useCallback(() => {
+    setProductToDelete(null)
+  }, [])
+
+  const handleDelete = useCallback(async () => {
+    if (!productToDelete) return
+
+    const product = productToDelete
+    setDeletingId(product.id)
+    try {
+      await deleteProduct(product.id, token)
+      toast('success', `Produto "${product.name}" excluído.`)
+      setProductToDelete(null)
+      refresh()
+    } catch (error) {
+      if (isAuthError(error)) {
+        onLock()
         return
       }
-
-      setDeletingId(product.id)
-      try {
-        await deleteProduct(product.id, token)
-        toast('success', `Produto "${product.name}" excluído.`)
-        refresh()
-      } catch (error) {
-        if (isAuthError(error)) {
-          onLock()
-          return
-        }
-        toast(
-          'error',
-          error instanceof Error ? error.message : 'Falha ao excluir o produto.',
-        )
-      } finally {
-        setDeletingId(null)
-      }
-    },
-    [token, toast, refresh, onLock],
-  )
+      setProductToDelete(null)
+      toast(
+        'error',
+        error instanceof Error ? error.message : 'Falha ao excluir o produto.',
+      )
+    } finally {
+      setDeletingId(null)
+    }
+  }, [token, toast, refresh, onLock, productToDelete])
 
   const categories = Array.from(new Set(products.map((p) => p.category).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'pt-BR'))
   const subcategories = Array.from(new Set(products.map((p) => p.subcategory).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'pt-BR'))
@@ -337,7 +345,7 @@ export function AdminDashboard({ token, onLock }: AdminDashboardProps) {
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleDelete(product)}
+                            onClick={() => requestDelete(product)}
                             disabled={deletingId === product.id}
                             className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
                           >
@@ -364,6 +372,7 @@ export function AdminDashboard({ token, onLock }: AdminDashboardProps) {
           onClose={closeModal}
         >
           <ProductForm
+            key={editingProduct ? `edit-${editingProduct.id}` : 'new'}
             product={editingProduct}
             products={products}
             onSubmit={handleSubmit}
@@ -372,6 +381,24 @@ export function AdminDashboard({ token, onLock }: AdminDashboardProps) {
             submittingLabel={editingProduct ? 'Salvando...' : 'Adicionando...'}
           />
         </ProductModal>
+
+        <ConfirmDialog
+          isOpen={productToDelete !== null}
+          title="Excluir produto"
+          message={
+            <>
+              Tem certeza que deseja excluir o produto{' '}
+              <strong className="font-semibold">
+                "{productToDelete?.name ?? ''}"
+              </strong>
+              ? Esta ação não pode ser desfeita.
+            </>
+          }
+          confirmLabel="Excluir"
+          busy={deletingId === productToDelete?.id}
+          onConfirm={() => void handleDelete()}
+          onCancel={cancelDelete}
+        />
       </div>
     </div>
   )
