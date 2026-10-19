@@ -18,7 +18,7 @@ export function Header() {
 
   useEffect(() => {
     const onScroll = () => {
-      setVisible(window.scrollY >= window.innerHeight)
+      setVisible(window.scrollY >= window.innerHeight * 0.7)
     }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
