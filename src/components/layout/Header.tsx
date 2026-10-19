@@ -1,12 +1,19 @@
 ﻿import { useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTheme } from '../../hooks/useTheme'
 import { contact, sectionLinks } from '../../data/sections'
+import {
+  ALL_SUBCATEGORIES,
+  useCatalog,
+} from '../../context/CatalogContext'
 import { Icon } from '../ui/Icon'
 
 export function Header() {
   const { theme, toggleTheme } = useTheme()
   const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const { categories, selectedCategory, selectCategory, selectSubcategory } =
+    useCatalog()
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -17,6 +24,25 @@ export function Header() {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  const goToCatalog = () => {
+    if (pathname === '/') {
+      document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' })
+    } else {
+      navigate('/#catalogo')
+    }
+  }
+
+  const handleCategoryClick = (category: string) => {
+    selectCategory(category)
+    goToCatalog()
+  }
+
+  const handleSubcategoryClick = (category: string, subcategory: string) => {
+    selectCategory(category)
+    selectSubcategory(subcategory)
+    goToCatalog()
+  }
 
   return (
     <header className="fixed inset-x-0 top-0 z-50">
@@ -46,8 +72,8 @@ export function Header() {
             : 'border-transparent bg-transparent backdrop-blur-none'
         }`}
       >
-        <div className="mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-2.5" aria-label="Orto Centro- Voltar ao início">
+        <div className="mx-auto flex h-16 items-center justify-between gap-4 px-4 sm:px-6">
+          <Link to="/" className="flex shrink-0 items-center gap-2.5" aria-label="Orto Centro- Voltar ao início">
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-800 text-white dark:bg-blue-500 dark:text-white">
               <Icon name="heart" className="h-5 w-5" />
             </span>
@@ -57,11 +83,67 @@ export function Header() {
             </span>
           </Link>
 
+          <nav
+            className="hidden flex-1 items-center justify-center gap-1 lg:flex"
+            aria-label="Categorias de produtos"
+          >
+            {categories.map(({ name, subcategories }) => {
+              const isActive = selectedCategory === name
+
+              return (
+                <div key={name} className="group relative">
+                  <button
+                    type="button"
+                    onClick={() => handleCategoryClick(name)}
+                    aria-haspopup={subcategories.length > 0 ? 'menu' : undefined}
+                    className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 ${
+                      isActive
+                        ? 'text-sky-700 dark:text-sky-300'
+                        : 'text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white'
+                    }`}
+                  >
+                    {name}
+                    {subcategories.length > 0 && (
+                      <Icon
+                        name="chevron-down"
+                        className="h-3.5 w-3.5 opacity-60 transition-transform duration-200 group-hover:rotate-180"
+                      />
+                    )}
+                  </button>
+
+                  {subcategories.length > 0 && (
+                    <div className="invisible absolute left-0 top-full z-50 translate-y-1 pt-2 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
+                      <div className="w-60 rounded-md border border-neutral-200 bg-white p-1.5 shadow-lg dark:border-neutral-800 dark:bg-slate-900">
+                        <button
+                          type="button"
+                          onClick={() => handleSubcategoryClick(name, ALL_SUBCATEGORIES)}
+                          className="w-full rounded px-3 py-2 text-left text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                        >
+                          Todos os itens
+                        </button>
+                        {subcategories.map((subcategory) => (
+                          <button
+                            key={subcategory}
+                            type="button"
+                            onClick={() => handleSubcategoryClick(name, subcategory)}
+                            className="w-full rounded px-3 py-2 text-left text-sm text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                          >
+                            {subcategory}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </nav>
+
           <button
             type="button"
             onClick={toggleTheme}
             aria-label={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}
-            className="rounded-lg p-2 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white"
+            className="shrink-0 rounded-lg p-2 text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white"
           >
             {theme === 'dark' ? <Icon name="sun" /> : <Icon name="moon" />}
           </button>

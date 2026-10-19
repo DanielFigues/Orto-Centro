@@ -6,6 +6,7 @@ import { Footer } from './components/layout/Footer'
 import { HomePage } from './pages/HomePage'
 import { AdminPage } from './pages/AdminPage'
 import { ProductDetailPage } from './pages/ProductDetailPage'
+import { CatalogProvider } from './context/CatalogContext'
 
 function ScrollManager() {
   const { pathname, hash, key } = useLocation()
@@ -81,14 +82,14 @@ function ProductLayout() {
 
 function App() {
   return (
-    <>
+    <CatalogProvider>
       <ScrollManager />
       <Routes>
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/produto/:id" element={<ProductLayout />} />
         <Route path="*" element={<HomeLayout />} />
       </Routes>
-    </>
+    </CatalogProvider>
   )
 }
 
