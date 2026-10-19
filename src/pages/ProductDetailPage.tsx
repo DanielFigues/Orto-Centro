@@ -16,6 +16,46 @@ function parseSizes(sizes: string | undefined): string[] {
     .filter((s) => s !== '')
 }
 
+interface TechnicalSpec {
+  property: string
+  value: string
+}
+
+function parseSpecs(raw: string | undefined): TechnicalSpec[] {
+  if (!raw || raw.trim() === '') return []
+
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(raw)
+  } catch {
+    return []
+  }
+
+  if (!Array.isArray(parsed)) return []
+
+  return parsed
+    .filter(
+      (item): item is Record<string, unknown> =>
+        typeof item === 'object' && item !== null,
+    )
+    .map((item) => {
+      const property =
+        typeof item.property === 'string'
+          ? item.property
+          : typeof item.propriedade === 'string'
+            ? item.propriedade
+            : ''
+      const value =
+        typeof item.value === 'string'
+          ? item.value
+          : typeof item.valor === 'string'
+            ? item.valor
+            : ''
+      return { property: property.trim(), value: value.trim() }
+    })
+    .filter((spec) => spec.property !== '' && spec.value !== '')
+}
+
 export function ProductDetailPage({ productId }: ProductDetailPageProps) {
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -66,6 +106,11 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
 
   const sizes = useMemo(() => parseSizes(product?.sizes), [product])
 
+  const technicalSpecs = useMemo(
+    () => parseSpecs(product?.technical_specs),
+    [product],
+  )
+
   if (isLoading) {
     return (
       <div className="flex min-h-svh flex-col">
@@ -96,8 +141,8 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
             {product.subcategory && <> / <span>{product.subcategory}</span></>}
           </nav>
 
-          <div className="grid gap-8 lg:grid-cols-2">
-            <div className="space-y-4">
+          <div className="grid min-w-0 gap-8 lg:grid-cols-2">
+            <div className="min-w-0 space-y-4">
               <div className="aspect-square overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-800">
                 {currentImage ? (
                   <img
@@ -137,7 +182,7 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
               )}
             </div>
 
-            <div className="space-y-6">
+            <div className="min-w-0 space-y-6">
               <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
                 {product.name}
               </h1>
@@ -180,21 +225,58 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
           </div>
 
           {product.description && (
-            <div className="mt-8 space-y-3">
+            <div className="mt-8 max-w-full space-y-3">
               <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">
                 Descrição Geral
               </h2>
               {/<[a-zA-Z][^>]*>/.test(product.description) ? (
                 <div
-                  className="text-base leading-relaxed text-neutral-700 dark:text-neutral-300 [&_a]:text-sky-600 [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:pl-4 [&_blockquote]:text-neutral-500 [&_em]:italic [&_h1]:text-xl [&_h2]:text-lg [&_h3]:text-base [&_img]:my-2 [&_img]:max-w-full [&_img]:rounded-lg [&_li]:mt-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-3 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5"
+                  className="prose dark:prose-invert max-w-none break-words [&_img]:max-w-full [&_img]:rounded-lg"
                   dangerouslySetInnerHTML={{ __html: product.description }}
                 />
               ) : (
-                <p className="whitespace-pre-wrap text-base text-neutral-700 dark:text-neutral-300">
+                <p className="break-words whitespace-pre-wrap text-base leading-relaxed text-neutral-700 dark:text-neutral-300">
                   {product.description}
                 </p>
               )}
             </div>
+          )}
+
+          {technicalSpecs.length > 0 && (
+            <section className="mt-10 max-w-full">
+              <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">
+                Especificações Técnicas
+              </h2>
+              <div className="mt-4 overflow-x-auto rounded-2xl border border-neutral-200 dark:border-neutral-800">
+                <table className="w-full min-w-0 border-collapse text-sm">
+                  <thead>
+                    <tr className="bg-neutral-100 text-left text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">
+                      <th className="px-4 py-3 font-semibold">Especificação</th>
+                      <th className="px-4 py-3 font-semibold">Detalhe</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {technicalSpecs.map((spec, index) => (
+                      <tr
+                        key={`${spec.property}-${index}`}
+                        className={`${
+                          index % 2 === 0
+                            ? 'bg-white dark:bg-neutral-900'
+                            : 'bg-neutral-50 dark:bg-neutral-800/60'
+                        }`}
+                      >
+                        <td className="break-words px-4 py-3 font-medium text-neutral-900 dark:text-neutral-100">
+                          {spec.property}
+                        </td>
+                        <td className="break-words px-4 py-3 text-neutral-700 dark:text-neutral-300">
+                          {spec.value}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
           )}
         </div>
       </main>
