@@ -59,6 +59,15 @@ body {
   }
 }
 
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 .ql-toolbar.ql-snow {
   border-color: var(--color-slate-300);
 }
