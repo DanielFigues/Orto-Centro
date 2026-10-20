@@ -8,7 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
+dist/*
 dist-ssr
 *.local
 .opencode
@@ -23,3 +23,33 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Runtime databases
+backend/data/*.sqlite
+backend/data/*.sqlite3
+backend/data/*.db
+
+# Runtime user uploads
+public/uploads/*
+!public/uploads/.gitkeep
+
+# The dist folder is a build artifact, but keep the runtime uploads folder
+# tracked so it survives a clean deploy/build.
+!dist/uploads/
+dist/uploads/*
+!dist/uploads/.gitkeep
+
+# Keep the runtime data folder tracked even when empty
+!backend/data/.gitkeep
+
+# IDE temp / scratch files
+*.tmp
+*.temp
+tmp_*
