@@ -95,7 +95,6 @@ export interface CarouselProps {
   peek?: number;
   gap?: number;
   radius?: number;
-  frame?: boolean;
   effect?: CarouselEffect;
   indicator?: CarouselIndicator;
   arrows?: boolean;
@@ -149,10 +148,6 @@ const DEFAULT_ITEMS: CarouselContentItem[] = [
 
 const THEMES: Record<Theme, CSSProperties> = {
   dark: {
-    '--carousel-frame': 'rgba(38, 35, 46, 0.66)',
-    '--carousel-frame-edge': 'rgba(255, 255, 255, 0.08)',
-    '--carousel-frame-highlight': 'rgba(255, 255, 255, 0.07)',
-    '--carousel-frame-shadow': '0 22px 44px -20px rgba(0, 0, 0, 0.8), 0 6px 16px -8px rgba(0, 0, 0, 0.5)',
     '--carousel-tile': 'linear-gradient(180deg, #3a3644 0%, #27242f 100%)',
     '--carousel-tile-edge': 'rgba(255, 255, 255, 0.07)',
     '--carousel-tile-highlight': 'rgba(255, 255, 255, 0.12)',
@@ -166,10 +161,6 @@ const THEMES: Record<Theme, CSSProperties> = {
     '--carousel-press': 'brightness(0.8)'
   },
   light: {
-    '--carousel-frame': 'rgba(240, 240, 243, 0.8)',
-    '--carousel-frame-edge': 'rgba(24, 24, 27, 0.07)',
-    '--carousel-frame-highlight': 'rgba(255, 255, 255, 0.95)',
-    '--carousel-frame-shadow': '0 22px 44px -22px rgba(24, 24, 27, 0.3), 0 6px 16px -10px rgba(24, 24, 27, 0.16)',
     '--carousel-tile': 'linear-gradient(180deg, #ffffff 0%, #f6f6f8 100%)',
     '--carousel-tile-edge': 'rgba(24, 24, 27, 0.08)',
     '--carousel-tile-highlight': 'rgba(255, 255, 255, 1)',
@@ -192,14 +183,7 @@ const clamp = (value: number, min: number, max: number): number => Math.min(max,
 const wrap = (value: number, count: number): number => ((value % count) + count) % count;
 const nearest = (offset: number, count: number): number => wrap(offset + count / 2, count) - count / 2;
 
-const smootherstep = (t: number): number => t * t * t * (t * (t * 6 - 15) + 10);
-
-const edgeMask = (size: number): string => {
-  const stops = [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1].map(t => [smootherstep(t).toFixed(3), (t * size).toFixed(1)]);
-  const left = stops.map(([alpha, x]) => `rgba(0, 0, 0, ${alpha}) ${x}px`);
-  const right = [...stops].reverse().map(([alpha, x]) => `rgba(0, 0, 0, ${alpha}) calc(100% - ${x}px)`);
-  return `linear-gradient(to right, ${[...left, ...right].join(', ')})`;
-};
+const EDGE_MASK = 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)';
 
 const band = (value: number, max: number): number => {
   if (value < 0) return -0.3 * (1 - Math.exp(value / 0.55));
@@ -306,7 +290,6 @@ export default function Carousel({
   peek = 0,
   gap = 16,
   radius = 12,
-  frame = true,
   effect = 'tilt',
   indicator = 'dots',
   arrows = false,
@@ -335,20 +318,19 @@ export default function Carousel({
   const engineRef = useRef<Engine | null>(null);
   const onChangeRef = useRef<CarouselProps['onChange']>(onChange);
   const ratio = clamp(aspectRatio, 0.3, 4);
-  const maxWidth =
-    typeof baseWidth === 'number' && round && frame ? 20 + (baseWidth - 20) * Math.min(1, 1 / ratio) : baseWidth;
-  const [width, setWidth] = useState<number>(typeof maxWidth === 'number' ? maxWidth - (frame ? 20 : 0) : 300);
+  const maxWidth = typeof baseWidth === 'number' && round ? baseWidth * Math.min(1, 1 / ratio) : baseWidth;
+  const [width, setWidth] = useState<number>(typeof maxWidth === 'number' ? maxWidth : 300);
   const [active, setActive] = useState<number>(() => clamp(Math.round(initialIndex), 0, Math.max(0, count - 1)));
   const startRef = useRef(active);
   const reportedRef = useRef(active);
   const previousRef = useRef(active);
 
-  const side = stacked || (round && frame) ? 0 : clamp(peek, 0, width * 0.2);
+  const side = stacked || round ? 0 : clamp(peek, 0, width * 0.2);
   const slot = Math.max(40, width - side * 2);
-  const diameter = frame ? slot : Math.min(slot, slot / ratio);
+  const diameter = Math.min(slot, slot / ratio);
   const cardWidth = round ? diameter : slot;
   const cardHeight = round ? diameter : slot / ratio;
-  const clipped = !frame && !stacked;
+  const clipped = !stacked;
   const bleed = clipped ? Math.round(Math.min(48, cardWidth * 0.12)) : 0;
   const inset = bleed + (width - cardWidth) / 2;
   const settings: CarouselSettings = {
@@ -741,26 +723,38 @@ export default function Carousel({
     );
   }, [active, count, loop]);
 
-  const controls = count > 1 && (indicator !== 'none' || arrows);
+  const controls = count > 1 && indicator !== 'none';
+  const showArrows = arrows && count > 1;
   const atStart = !settings.loop && active === 0;
   const atEnd = !settings.loop && active === count - 1;
   const perspective = mode === 'cube' ? `${Math.round(cardWidth * 2.6)}px` : mode === 'tilt' ? '1000px' : undefined;
-  const mask = clipped ? edgeMask(inset) : undefined;
+  const mask = clipped ? EDGE_MASK : undefined;
+
+  const arrowsNode = showArrows ? (
+    <>
+      <button
+        type="button"
+        className="carousel-arrow absolute left-3 top-1/2 z-40 -translate-y-1/2 hover:scale-110 md:-left-12"
+        aria-label="Previous slide"
+        disabled={atStart}
+        onClick={() => engineRef.current?.step(-1)}
+      >
+        <Chevron flip />
+      </button>
+      <button
+        type="button"
+        className="carousel-arrow absolute right-3 top-1/2 z-40 -translate-y-1/2 hover:scale-110 md:-right-12"
+        aria-label="Next slide"
+        disabled={atEnd}
+        onClick={() => engineRef.current?.step(1)}
+      >
+        <Chevron />
+      </button>
+    </>
+  ) : null;
 
   const controlsNode = controls ? (
     <div className="carousel-controls" style={{ width: cardWidth }}>
-      {arrows && (
-        <button
-          type="button"
-          className="carousel-arrow"
-          aria-label="Previous slide"
-          disabled={atStart}
-          onClick={() => engineRef.current?.step(-1)}
-        >
-          <Chevron flip />
-        </button>
-      )}
-
       {indicator === 'dots' && (
         <div className="carousel-dots">
           {items.map((_, index) => (
@@ -814,26 +808,13 @@ export default function Carousel({
           <span>{String(count).padStart(2, '0')}</span>
         </div>
       )}
-
-      {arrows && (
-        <button
-          type="button"
-          className="carousel-arrow"
-          aria-label="Next slide"
-          disabled={atEnd}
-          onClick={() => engineRef.current?.step(1)}
-        >
-          <Chevron />
-        </button>
-      )}
     </div>
   ) : null;
-  const inside = frame && !round;
 
   return (
     <div
       ref={rootRef}
-      className={`carousel-container${frame ? ' has-frame' : ''}${round ? ' is-round' : ''}${className ? ` ${className}` : ''}`}
+      className={`carousel-container bg-transparent${round ? ' is-round' : ''}${className ? ` ${className}` : ''}`}
       style={{
         ...(THEMES[theme] ?? THEMES.dark),
         '--carousel-radius': `${round ? 9999 : Math.max(0, radius)}px`,
@@ -904,11 +885,10 @@ export default function Carousel({
           })}
         </div>
 
-        {inside && controlsNode}
-        {frame && <span className="carousel-frame-rim" />}
+        {arrowsNode}
       </div>
 
-      {!inside && controlsNode}
+      {controlsNode}
     </div>
   );
 }
