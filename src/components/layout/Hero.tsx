@@ -1,5 +1,6 @@
 ﻿import SplitText from '../bits/SplitText'
 import SpecularButton from '../bits/SpecularButton'
+import { contact } from '../../data/sections'
 import { Icon } from '../ui/Icon'
 
 export function Hero() {
@@ -57,7 +58,7 @@ export function Hero() {
               </span>
             </SpecularButton>
             <SpecularButton
-              href="#contato"
+              href={contact.whatsappHref}
               size="md"
               tint="#ffffff"
               tintOpacity={1}

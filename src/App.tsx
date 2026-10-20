@@ -1,7 +1,6 @@
 ﻿import { useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom'
 import { Header } from './components/layout/Header'
-import { Hero } from './components/layout/Hero'
 import { Footer } from './components/layout/Footer'
 import { HomePage } from './pages/HomePage'
 import { AdminPage } from './pages/AdminPage'
@@ -53,11 +52,7 @@ function HomeLayout() {
   return (
     <div className="flex min-h-svh flex-col">
       <Header />
-      <Hero />
-      <main className="flex-1 px-4 py-8 sm:px-6">
-        <HomePage />
-      </main>
-      <Footer />
+      <HomePage />
     </div>
   )
 }
@@ -81,18 +76,6 @@ function ProductLayout() {
   )
 }
 
-function CategoryLayout() {
-  return (
-    <div className="flex min-h-svh flex-col">
-      <Header />
-      <main className="flex-1 px-4 pb-12 pt-36 sm:px-6 lg:pt-28">
-        <CategoryPage />
-      </main>
-      <Footer />
-    </div>
-  )
-}
-
 function App() {
   return (
     <CatalogProvider>
@@ -100,7 +83,7 @@ function App() {
       <Routes>
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/produto/:id" element={<ProductLayout />} />
-        <Route path="/categoria/:nome" element={<CategoryLayout />} />
+        <Route path="/categoria/:categoryName" element={<CategoryPage />} />
         <Route path="*" element={<HomeLayout />} />
       </Routes>
     </CatalogProvider>

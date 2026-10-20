@@ -73,12 +73,6 @@ export function Header() {
                   {subcategories.length > 0 && (
                     <div className="invisible absolute left-0 top-full z-50 translate-y-1 pt-2 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
                       <div className="w-60 rounded-md border border-neutral-200 bg-white p-1.5 shadow-lg dark:border-neutral-800 dark:bg-slate-900">
-                        <Link
-                          to={categoryPath}
-                          className="block w-full rounded px-3 py-2 text-left text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-slate-800 dark:hover:text-white"
-                        >
-                          Todos os itens
-                        </Link>
                         {subcategories.map((subcategory) => (
                           <Link
                             key={subcategory}
