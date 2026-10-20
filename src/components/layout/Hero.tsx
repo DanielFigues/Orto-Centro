@@ -14,7 +14,7 @@ export function Hero() {
             <SplitText
               text="Orto"
               tag="span"
-              className="text-6xl font-bold leading-none tracking-[0.08em] text-white sm:text-8xl"
+              className="text-6xl font-bold leading-none tracking-[0.08em] text-blue-400 sm:text-8xl"
               splitType="words, chars"
               duration={0.9}
               delay={45}

@@ -6,6 +6,7 @@ import { Footer } from './components/layout/Footer'
 import { HomePage } from './pages/HomePage'
 import { AdminPage } from './pages/AdminPage'
 import { ProductDetailPage } from './pages/ProductDetailPage'
+import { CategoryPage } from './pages/CategoryPage'
 import { CatalogProvider } from './context/CatalogContext'
 
 function ScrollManager() {
@@ -80,6 +81,18 @@ function ProductLayout() {
   )
 }
 
+function CategoryLayout() {
+  return (
+    <div className="flex min-h-svh flex-col">
+      <Header />
+      <main className="flex-1 px-4 pb-12 pt-36 sm:px-6 lg:pt-28">
+        <CategoryPage />
+      </main>
+      <Footer />
+    </div>
+  )
+}
+
 function App() {
   return (
     <CatalogProvider>
@@ -87,6 +100,7 @@ function App() {
       <Routes>
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/produto/:id" element={<ProductLayout />} />
+        <Route path="/categoria/:categoria" element={<CategoryLayout />} />
         <Route path="*" element={<HomeLayout />} />
       </Routes>
     </CatalogProvider>
