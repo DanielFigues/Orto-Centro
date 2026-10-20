@@ -59,36 +59,30 @@ function FeaturedProductCard({ product }: { product: Product }) {
   return (
     <Link
       to={`/produto/${product.id}`}
-      className="group flex h-full w-full flex-col overflow-hidden bg-white text-left dark:bg-neutral-900"
+      className="group relative block h-full w-full overflow-hidden rounded-xl bg-neutral-900 text-left"
     >
-      <div className="relative min-h-0 flex-1 overflow-hidden bg-neutral-100 dark:bg-neutral-800">
-        {product.image_url !== '' ? (
-          <img
-            src={product.image_url}
-            alt={product.name}
-            loading="lazy"
-            decoding="async"
-            draggable={false}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <Icon name="tools" className="h-14 w-14 text-blue-500 dark:text-blue-400" />
-          </div>
-        )}
-      </div>
-      <div className="shrink-0 p-5">
-        <p className="text-xs font-medium uppercase tracking-wide text-blue-600 dark:text-blue-400">
+      {product.image_url !== '' ? (
+        <img
+          src={product.image_url}
+          alt={product.name}
+          loading="lazy"
+          decoding="async"
+          draggable={false}
+          className="h-full w-full rounded-xl object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center rounded-xl bg-neutral-800">
+          <Icon name="tools" className="h-14 w-14 text-sky-500" />
+        </div>
+      )}
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 p-5">
+        <p className="text-xs font-medium uppercase tracking-wide text-white/80">
           {product.category}
         </p>
-        <h3 className="mt-1 line-clamp-2 text-lg font-semibold leading-snug text-neutral-900 dark:text-white">
+        <h3 className="mt-1 line-clamp-2 text-lg font-semibold leading-snug text-white">
           {product.name}
         </h3>
-        {product.subcategory !== '' && (
-          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-            {product.subcategory}
-          </p>
-        )}
       </div>
     </Link>
   )
@@ -123,13 +117,13 @@ export function HomePage() {
             <Carousel
               items={featuredItems}
               className="mx-auto"
-              baseWidth={960}
-              aspectRatio={1.1}
-              peek={150}
+              baseWidth={640}
+              aspectRatio={1.15}
+              peek={80}
               gap={24}
               radius={20}
-              effect="slide"
-              indicator="dots"
+              effect="scale"
+              indicator="bars"
               arrows
               autoplay
               autoplayDelay={4500}

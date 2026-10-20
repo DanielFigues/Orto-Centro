@@ -1,7 +1,7 @@
 ﻿import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTheme } from '../../hooks/useTheme'
-import { contact, sectionLinks } from '../../data/sections'
+import { sectionLinks } from '../../data/sections'
 import { useCatalog } from '../../context/catalogContextValue'
 import { Icon } from '../ui/Icon'
 
@@ -28,29 +28,6 @@ export function Header() {
           : 'bg-transparent shadow-none'
       }`}
     >
-      <div className="flex h-9 items-center justify-between gap-4 border-b border-neutral-200/70 px-4 text-xs sm:px-6 dark:border-neutral-800/70">
-        <p
-          className={`hidden truncate sm:block ${
-            visible
-              ? 'text-neutral-600 dark:text-neutral-400'
-              : 'text-slate-300'
-          }`}
-        >
-          Cuidado, conforto e acessibilidade para o seu dia a dia.
-        </p>
-        <a
-          href={contact.phoneHref}
-          className={`ml-auto flex items-center gap-1.5 font-medium transition-colors sm:ml-0 ${
-            visible
-              ? 'text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white'
-              : 'text-slate-200 hover:text-white'
-          }`}
-        >
-          <Icon name="phone" className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400" />
-          {contact.phone}
-        </a>
-      </div>
-
       <div className="border-b border-neutral-200/70 dark:border-neutral-800/70">
         <div className="mx-auto flex h-16 items-center justify-between gap-4 px-4 sm:px-6">
           <Link to="/" className="flex shrink-0 items-center gap-2.5" aria-label="Orto Centro- Voltar ao início">
@@ -81,7 +58,7 @@ export function Header() {
                         ? 'text-sky-600 dark:text-sky-400'
                         : visible
                           ? 'text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white'
-                          : 'text-slate-200 hover:text-white'
+                          : 'text-slate-800 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white'
                     }`}
                   >
                     {name}
@@ -126,7 +103,7 @@ export function Header() {
             className={`shrink-0 rounded-lg p-2 transition-colors ${
               visible
                 ? 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white'
-                : 'text-slate-300 hover:text-white'
+                : 'text-slate-800 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white'
             }`}
           >
             {theme === 'dark' ? <Icon name="sun" /> : <Icon name="moon" />}
