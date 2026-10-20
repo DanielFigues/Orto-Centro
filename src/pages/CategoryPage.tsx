@@ -1,13 +1,13 @@
 import { useMemo } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import { useCatalog } from '../context/CatalogContext'
+import { useCatalog } from '../context/catalogContextValue'
 import { CatalogProductCard } from '../components/catalog/CatalogProductCard'
 import { Icon } from '../components/ui/Icon'
 
 export function CategoryPage() {
-  const { categoria } = useParams()
+  const { nome } = useParams()
   const [searchParams] = useSearchParams()
-  const category = categoria ?? ''
+  const category = nome ?? ''
   const subcategory = searchParams.get('subcategoria') ?? ''
   const { activeProducts, isLoading, errorMessage } = useCatalog()
 
@@ -63,9 +63,9 @@ export function CategoryPage() {
       <div className="mt-4 border-b border-neutral-200 pb-3 dark:border-neutral-800">
         <h1
           id="categoria-titulo"
-          className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white"
+          className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white"
         >
-          {subcategory !== '' ? subcategory : category}
+          {subcategory !== '' ? `Categoria: ${category} / ${subcategory}` : `Categoria: ${category}`}
         </h1>
         <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
           {products.length} {products.length === 1 ? 'produto' : 'produtos'}

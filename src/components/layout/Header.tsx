@@ -2,7 +2,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useTheme } from '../../hooks/useTheme'
 import { contact, sectionLinks } from '../../data/sections'
-import { useCatalog } from '../../context/CatalogContext'
+import { useCatalog } from '../../context/catalogContextValue'
 import { Icon } from '../ui/Icon'
 
 export function Header() {

@@ -1,37 +1,13 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { fetchProducts } from '../services/api'
 import type { Product } from '../types/product'
-
-export const ALL_CATEGORIES = 'Todos'
-export const ALL_SUBCATEGORIES = 'Todas'
-
-export interface CategoryNav {
-  name: string
-  subcategories: string[]
-}
-
-interface CatalogContextValue {
-  activeProducts: Product[]
-  categories: CategoryNav[]
-  isLoading: boolean
-  errorMessage: string | null
-  selectedCategory: string
-  selectedSubcategory: string
-  selectCategory: (category: string) => void
-  selectSubcategory: (subcategory: string) => void
-  resetFilters: () => void
-  retry: () => void
-}
-
-const CatalogContext = createContext<CatalogContextValue | null>(null)
+import {
+  ALL_CATEGORIES,
+  ALL_SUBCATEGORIES,
+  CatalogContext,
+} from './catalogContextValue'
+import type { CategoryNav } from './catalogContextValue'
 
 function sortLabels(labels: Iterable<string>): string[] {
   return [...labels].sort((a, b) => a.localeCompare(b, 'pt-BR'))
@@ -143,12 +119,4 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   )
 
   return <CatalogContext.Provider value={value}>{children}</CatalogContext.Provider>
-}
-
-export function useCatalog(): CatalogContextValue {
-  const context = useContext(CatalogContext)
-  if (context === null) {
-    throw new Error('useCatalog deve ser usado dentro de um CatalogProvider.')
-  }
-  return context
 }

@@ -100,7 +100,7 @@ function App() {
       <Routes>
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/produto/:id" element={<ProductLayout />} />
-        <Route path="/categoria/:categoria" element={<CategoryLayout />} />
+        <Route path="/categoria/:nome" element={<CategoryLayout />} />
         <Route path="*" element={<HomeLayout />} />
       </Routes>
     </CatalogProvider>
