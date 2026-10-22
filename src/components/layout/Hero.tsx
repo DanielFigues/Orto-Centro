@@ -1,6 +1,4 @@
 ﻿import SplitText from '../bits/SplitText'
-import SpecularButton from '../bits/SpecularButton'
-import { contact } from '../../data/sections'
 import { Icon } from '../ui/Icon'
 
 export function Hero() {
@@ -41,38 +39,6 @@ export function Hero() {
             cotidiano. Navegue pelas categorias e encontre o produto ideal para
             cada necessidade.
           </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <SpecularButton
-              href="#catalogo"
-              size="md"
-              tint="#0284c7"
-              tintOpacity={1}
-              baseColor="#ffffff"
-              lineColor="#0f172a"
-              textColor="#0f172a"
-              radius={14}
-            >
-              <span className="inline-flex items-center gap-2">
-                Ver produtos
-                <Icon name="arrow-right" className="h-4 w-4" />
-              </span>
-            </SpecularButton>
-            <SpecularButton
-              href={contact.whatsappHref}
-              size="md"
-              tint="#ffffff"
-              tintOpacity={1}
-              baseColor="#f8fafc"
-              lineColor="#0f172a"
-              textColor="#0f172a"
-              radius={14}
-            >
-              <span className="inline-flex items-center gap-2">
-                <Icon name="phone" className="h-4 w-4 text-sky-700" />
-                Falar conosco
-              </span>
-            </SpecularButton>
-          </div>
         </div>
       </div>
 

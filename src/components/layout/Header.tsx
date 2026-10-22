@@ -24,20 +24,18 @@ export function Header() {
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
         visible
-          ? 'bg-white shadow-md dark:bg-slate-900'
+          ? 'bg-white shadow-md dark:bg-neutral-800'
           : 'bg-transparent shadow-none'
       }`}
     >
       <div className="border-b border-neutral-200/70 dark:border-neutral-800/70">
         <div className="mx-auto flex h-16 items-center justify-between gap-4 px-4 sm:px-6">
-          <Link to="/" className="flex shrink-0 items-center gap-2.5" aria-label="Orto Centro- Voltar ao início">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-800 text-white dark:bg-blue-500 dark:text-white">
-              <Icon name="heart" className="h-5 w-5" />
-            </span>
-            <span className="text-xl font-bold tracking-tight text-blue-800 dark:text-blue-400">
-              Orto
-              <span className="text-green-600 dark:text-green-500">Centro</span>
-            </span>
+          <Link to="/" className="flex shrink-0 items-center" aria-label="Orto Centro- Voltar ao início">
+            <img
+              src="/logo.png"
+              alt="Orto Centro"
+              className="h-10 w-auto object-contain"
+            />
           </Link>
 
           <nav
