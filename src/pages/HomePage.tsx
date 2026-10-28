@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Carousel from '../components/bits/Carousel'
 import FadeContent from '../components/bits/FadeContent'
@@ -9,6 +9,14 @@ import { useCatalog } from '../context/catalogContextValue'
 import type { Product } from '../types/product'
 
 const FEATURED_PRODUCTS_LIMIT = 6
+
+const categories = [
+  { name: 'Mobilidade', img: '/images/products/cadeira-rodas-standard.jpg', sub: 'Cadeiras de Rodas, Andadores' },
+  { name: 'Apoio Postural', img: '/images/products/almofada-postural.jpg', sub: 'Almofadas, Encostos' },
+  { name: 'Banho e Higiene', img: '/images/products/assento-banho.jpg', sub: 'Barras, Assentos' },
+  { name: 'Acessórios', img: '/images/products/capa-chuva-cadeira.jpg', sub: 'Ponteiras, Protetores' },
+  { name: 'Vida Diária', img: '/images/products/talheres-engrossados.jpg', sub: 'Talheres, Auxiliares' }
+]
 
 interface BentoFeature {
   icon: string
@@ -149,6 +157,45 @@ function BentoCard({ feature }: { feature: BentoFeature }) {
 export function HomePage() {
   const { activeProducts } = useCatalog()
   const theme = usePageTheme()
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [startX, setStartX] = useState(0)
+  const [scrollLeftPos, setScrollLeftPos] = useState(0)
+
+  const scrollLeft = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: -350, behavior: 'smooth' })
+    }
+  }
+
+  const scrollRight = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: 350, behavior: 'smooth' })
+    }
+  }
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!scrollRef.current) return
+    setIsDragging(true)
+    setStartX(e.pageX - scrollRef.current.offsetLeft)
+    setScrollLeftPos(scrollRef.current.scrollLeft)
+  }
+
+  const handleMouseLeave = () => {
+    setIsDragging(false)
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+  }
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || !scrollRef.current) return
+    e.preventDefault()
+    const x = e.pageX - scrollRef.current.offsetLeft
+    const walk = (x - startX) * 1.5
+    scrollRef.current.scrollLeft = scrollLeftPos - walk
+  }
 
   const featuredItems = useMemo(
     () =>
@@ -161,6 +208,56 @@ export function HomePage() {
   return (
     <>
       <Hero />
+
+      <section className="relative group/carousel w-full mt-16 md:mt-24">
+        <button
+          onClick={scrollLeft}
+          className="absolute top-[calc(50%-2rem)] -translate-y-1/2 left-4 z-20 bg-white text-slate-900 rounded-full p-3 shadow-lg opacity-0 group-hover/carousel:opacity-100 transition-opacity disabled:opacity-50"
+          aria-label="Scroll left"
+        >
+          <Icon name="chevron-left" className="h-5 w-5" />
+        </button>
+        <button
+          onClick={scrollRight}
+          className="absolute top-[calc(50%-2rem)] -translate-y-1/2 right-4 z-20 bg-white text-slate-900 rounded-full p-3 shadow-lg opacity-0 group-hover/carousel:opacity-100 transition-opacity disabled:opacity-50"
+          aria-label="Scroll right"
+        >
+          <Icon name="chevron-right" className="h-5 w-5" />
+        </button>
+        <div
+          ref={scrollRef}
+          className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-6 px-4 md:px-12 pb-8 hide-scrollbar cursor-grab active:cursor-grabbing"
+          onMouseDown={handleMouseDown}
+          onMouseLeave={handleMouseLeave}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+        >
+          {categories.map((category) => (
+            <Link
+              key={category.name}
+              to={`/categoria/${category.name}`}
+              className="min-w-[280px] md:min-w-[320px] snap-start flex flex-col group/card"
+            >
+              <div className="relative aspect-square w-full overflow-hidden rounded-xl">
+                <img
+                  src={category.img}
+                  alt={category.name}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
+                  <span className="text-white font-medium text-lg drop-shadow-md">Ver</span>
+                </div>
+              </div>
+              <h3 className="text-xl font-bold mt-4 text-slate-900 dark:text-white">
+                {category.name}
+              </h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {category.sub}
+              </p>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       <main className="flex-1 px-4 py-8 sm:px-6">
         <section id="catalogo" aria-labelledby="produtos-titulo" className="scroll-mt-40">
