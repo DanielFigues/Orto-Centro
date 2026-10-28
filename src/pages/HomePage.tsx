@@ -199,6 +199,20 @@ export function HomePage() {
           </div>
         </section>
 
+        <section
+          aria-label="Panoramic Lifestyle"
+          className="w-full mt-12 sm:mt-16"
+        >
+          <div
+            className="relative h-[30vh] w-full overflow-hidden bg-cover bg-center bg-fixed bg-no-repeat"
+            style={{
+              backgroundImage: "url('/images/products/acessibilidade.png')",
+            }}
+          >
+            <div className="absolute inset-0 bg-black/70" />
+          </div>
+        </section>
+
         <FadeContent>
           <section
             aria-labelledby="diferenciais-titulo"
