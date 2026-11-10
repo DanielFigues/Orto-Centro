@@ -1,9 +1,10 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTheme } from '../../hooks/useTheme'
 import { categories as canonicalCategories, categoryPath as toCategoryPath } from '../../data/categories'
 import { sectionLinks } from '../../data/sections'
 import { useCatalog } from '../../context/catalogContextValue'
+import { SearchDialog } from '../search/SearchDialog'
 import { Icon } from '../ui/Icon'
 
 export function Header() {
@@ -11,6 +12,8 @@ export function Header() {
   const { pathname } = useLocation()
   const { categories: catalogCategories } = useCatalog()
   const [visible, setVisible] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const searchButtonRef = useRef<HTMLButtonElement>(null)
 
   const navCategories = useMemo(() => {
     const byName = new Map(
@@ -36,8 +39,41 @@ export function Header() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  const closeSearch = useCallback(() => {
+    setSearchOpen(false)
+  }, [])
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null
+      const tagName = target?.tagName
+      const isEditable =
+        target?.isContentEditable === true ||
+        tagName === 'INPUT' ||
+        tagName === 'TEXTAREA' ||
+        tagName === 'SELECT'
+      const isCommandK =
+        (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k'
+      const isSlash =
+        event.key === '/' &&
+        !isEditable &&
+        !event.metaKey &&
+        !event.ctrlKey &&
+        !event.altKey
+
+      if (!isCommandK && !isSlash) return
+
+      event.preventDefault()
+      setSearchOpen(true)
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
+
   return (
-    <header
+    <>
+      <header
       className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
         visible
           ? 'bg-white shadow-md dark:bg-neutral-800'
@@ -104,18 +140,36 @@ export function Header() {
             })}
           </nav>
 
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}
-            className={`shrink-0 rounded-lg p-2 transition-colors ${
-              visible
-                ? 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white'
-                : 'text-slate-800 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white'
-            }`}
-          >
-            {theme === 'dark' ? <Icon name="sun" /> : <Icon name="moon" />}
-          </button>
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              ref={searchButtonRef}
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              aria-label="Buscar produtos"
+              aria-haspopup="dialog"
+              aria-keyshortcuts="/ Control+K Meta+K"
+              className={`focus-ring inline-flex h-11 w-11 items-center justify-center rounded-button transition-colors ${
+                visible
+                  ? 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white'
+                  : 'text-slate-800 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white'
+              }`}
+            >
+              <Icon name="search" className="h-5 w-5" />
+            </button>
+
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}
+              className={`focus-ring inline-flex h-11 w-11 items-center justify-center rounded-button transition-colors ${
+                visible
+                  ? 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white'
+                  : 'text-slate-800 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white'
+              }`}
+            >
+              {theme === 'dark' ? <Icon name="sun" /> : <Icon name="moon" />}
+            </button>
+          </div>
         </div>
 
         <nav className="flex gap-1.5 overflow-x-auto px-4 pb-3 lg:hidden" aria-label="Navegação por seções">
@@ -148,5 +202,9 @@ export function Header() {
         </nav>
       </div>
     </header>
+    {searchOpen && (
+      <SearchDialog onClose={closeSearch} returnFocusRef={searchButtonRef} />
+    )}
+    </>
   )
 }

@@ -10,39 +10,13 @@ import { SectionHeading } from '../components/layout/SectionHeading'
 import { Icon } from '../components/ui/Icon'
 import { useCatalog } from '../context/catalogContextValue'
 import { categories } from '../data/categories'
+import { homeBenefits } from '../data/home'
 import { contact } from '../data/sections'
 
 const FEATURED_PRODUCTS_LIMIT = 6
 
 // Alterne para 'grid' para comparar o layout de grade com o carrossel.
 const PRODUCTS_LAYOUT: 'carousel' | 'grid' = 'carousel'
-
-interface Pillar {
-  icon: string
-  title: string
-  description: string
-}
-
-const PILLARS: Pillar[] = [
-  {
-    icon: 'phone',
-    title: 'Orientação sem pressa',
-    description:
-      'Atendimento próximo para entender a sua rotina e indicar o produto mais adequado.',
-  },
-  {
-    icon: 'shield',
-    title: 'Produtos selecionados',
-    description:
-      'Itens escolhidos com atenção à segurança, ao conforto e à durabilidade no uso diário.',
-  },
-  {
-    icon: 'heart',
-    title: 'Suporte que acompanha',
-    description:
-      'Ajuda antes e depois da escolha, com uma equipe que conhece cada solução do catálogo.',
-  },
-]
 
 const STEPS = [
   {
@@ -152,24 +126,56 @@ export function HomePage() {
                   id="diferenciais-titulo"
                   eyebrow="Por que escolher a Orto Centro"
                   title="Cuidado em cada escolha"
-                  description="Orientação próxima, produtos selecionados e suporte para você decidir com tranquilidade."
+                  description="Três compromissos que guiam cada escolha: mais autonomia, segurança no dia a dia e orientação próxima."
                 />
 
-                <ul className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-3 lg:gap-5">
-                  {PILLARS.map((pillar) => (
+                <ul className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-5">
+                  {homeBenefits.map((benefit) => (
                     <li
-                      key={pillar.title}
-                      className="flex flex-col gap-3 rounded-card border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900"
+                      key={benefit.id}
+                      className={
+                        benefit.featured
+                          ? 'md:col-span-2 lg:col-span-2 lg:row-span-2'
+                          : ''
+                      }
                     >
-                      <span className="inline-flex h-12 w-12 items-center justify-center rounded-button bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300">
-                        <Icon name={pillar.icon} className="h-6 w-6" />
-                      </span>
-                      <h3 className="text-h3 font-semibold leading-snug text-neutral-900 dark:text-white">
-                        {pillar.title}
-                      </h3>
-                      <p className="text-body leading-relaxed text-neutral-600 dark:text-neutral-300">
-                        {pillar.description}
-                      </p>
+                      <article
+                        className={`relative isolate h-full overflow-hidden rounded-card-lg bg-neutral-900 ${
+                          benefit.featured
+                            ? 'min-h-[360px] lg:min-h-0'
+                            : 'min-h-[260px]'
+                        }`}
+                      >
+                        <img
+                          src={benefit.image.src}
+                          alt={benefit.image.alt}
+                          width={benefit.image.width}
+                          height={benefit.image.height}
+                          loading="lazy"
+                          decoding="async"
+                          draggable={false}
+                          className="absolute inset-0 h-full w-full object-cover"
+                        />
+                        <div
+                          aria-hidden="true"
+                          className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/75 to-black/30"
+                        />
+
+                        <div className="relative flex h-full flex-col justify-end p-6 sm:p-7">
+                          <span
+                            aria-hidden="true"
+                            className="inline-flex h-12 w-12 items-center justify-center rounded-button border border-white/20 bg-black/25 text-white backdrop-blur-sm"
+                          >
+                            <Icon name={benefit.icon} className="h-6 w-6" />
+                          </span>
+                          <h3 className="mt-4 text-h3 font-semibold leading-snug text-white">
+                            {benefit.title}
+                          </h3>
+                          <p className="mt-2 max-w-lg text-body leading-relaxed text-neutral-100">
+                            {benefit.description}
+                          </p>
+                        </div>
+                      </article>
                     </li>
                   ))}
                 </ul>
