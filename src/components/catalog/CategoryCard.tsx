@@ -15,7 +15,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
     <article className="group relative flex h-full flex-col">
       <Link
         to={path}
-        className="focus-ring block aspect-square overflow-hidden rounded-[10px] bg-neutral-100 dark:bg-neutral-800"
+        className="focus-ring relative block aspect-square overflow-hidden rounded-[10px] bg-neutral-100 dark:bg-neutral-800"
         aria-label={`Ver categoria ${category.name}`}
       >
         {category.image ? (
@@ -26,19 +26,27 @@ export function CategoryCard({ category }: CategoryCardProps) {
             height={800}
             loading="lazy"
             decoding="async"
-            className="h-full w-full object-cover transition-transform duration-300 motion-reduce:transform-none [@media(hover:hover)]:group-hover:scale-[1.03]"
+            className="h-full w-full object-cover transition-transform duration-300 ease-out motion-reduce:transform-none motion-reduce:transition-none [@media(hover:hover)]:group-hover:scale-[1.03] [@media(hover:hover)]:group-focus-within:scale-[1.03]"
           />
         ) : (
           <div
             aria-label={category.imageAlt}
             role="img"
             data-placeholder="TODO"
-            className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neutral-800 to-neutral-950 text-white transition-transform duration-300 motion-reduce:transform-none [@media(hover:hover)]:group-hover:scale-[1.03]"
+            className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neutral-800 to-neutral-950 text-white transition-transform duration-300 ease-out motion-reduce:transform-none motion-reduce:transition-none [@media(hover:hover)]:group-hover:scale-[1.03] [@media(hover:hover)]:group-focus-within:scale-[1.03]"
           >
             {/* TODO: substituir placeholder neutro por imagem definitiva */}
             <Icon name={category.imageIcon} className="h-14 w-14 opacity-80" />
           </div>
         )}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center bg-[rgba(0,0,0,0.45)] opacity-0 transition-opacity duration-200 ease-out motion-reduce:transition-none [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100"
+        >
+          <span className="text-[22px] font-medium tracking-[0.02em] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.35)]">
+            Ver
+          </span>
+        </span>
       </Link>
 
       <div className="mt-[20px] flex flex-col pl-2">

@@ -357,24 +357,16 @@ body {
   font-size: 1rem;
 }
 
-.header-glass {
-  background: color-mix(in srgb, var(--header-bg) var(--header-bg-alpha), transparent);
-  -webkit-backdrop-filter: blur(12px) saturate(1.2);
-  backdrop-filter: blur(12px) saturate(1.2);
-}
-
+.header-glass,
 .header-glass-panel {
-  background: color-mix(in srgb, var(--header-panel-bg) var(--header-panel-alpha), transparent);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
-  backdrop-filter: blur(16px) saturate(1.2);
+  background: color-mix(in srgb, var(--header-bg) var(--header-bg-alpha), transparent);
+  -webkit-backdrop-filter: blur(5px) saturate(1.2);
+  backdrop-filter: blur(5px) saturate(1.2);
 }
 
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
-  .header-glass {
-    background: color-mix(in srgb, var(--header-bg) 96%, transparent);
-  }
-
+  .header-glass,
   .header-glass-panel {
-    background: color-mix(in srgb, var(--header-panel-bg) 96%, transparent);
+    background: color-mix(in srgb, var(--header-bg) 96%, transparent);
   }
 }
