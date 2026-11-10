@@ -69,7 +69,7 @@ export function Header() {
                     aria-haspopup={subcategories.length > 0 ? 'menu' : undefined}
                     className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 ${
                       isActive
-                        ? 'text-sky-600 dark:text-sky-400'
+                        ? 'text-sky-700 dark:text-sky-300'
                         : visible
                           ? 'text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white'
                           : 'text-slate-800 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white'

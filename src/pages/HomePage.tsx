@@ -1,7 +1,9 @@
 ﻿import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import FadeContent from '../components/bits/FadeContent'
-import { CatalogProductCard } from '../components/catalog/CatalogProductCard'
 import { CategoryCard } from '../components/catalog/CategoryCard'
+import { ProductCarousel } from '../components/catalog/ProductCarousel'
+import { ProductGrid } from '../components/catalog/ProductGrid'
 import { Footer } from '../components/layout/Footer'
 import { Hero } from '../components/layout/Hero'
 import { SectionHeading } from '../components/layout/SectionHeading'
@@ -11,6 +13,9 @@ import { categories } from '../data/categories'
 import { contact } from '../data/sections'
 
 const FEATURED_PRODUCTS_LIMIT = 6
+
+// Alterne para 'grid' para comparar o layout de grade com o carrossel.
+const PRODUCTS_LAYOUT: 'carousel' | 'grid' = 'carousel'
 
 interface Pillar {
   icon: string
@@ -98,12 +103,23 @@ export function HomePage() {
                 aria-labelledby="produtos-titulo"
                 className="section-y scroll-mt-40"
               >
-                <SectionHeading
-                  id="produtos-titulo"
-                  eyebrow="Destaques"
-                  title="Produtos em destaque"
-                  description="Uma seleção do catálogo para começar a explorar. Todos os itens têm informações detalhadas para você escolher com calma."
-                />
+                <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+                  <SectionHeading
+                    id="produtos-titulo"
+                    eyebrow="Destaques"
+                    title="Produtos em destaque"
+                    description="Uma seleção do catálogo para começar a explorar. Todos os itens têm informações detalhadas para você escolher com calma."
+                    className="md:max-w-2xl"
+                  />
+
+                  <Link
+                    to="/catalogo"
+                    className="focus-ring inline-flex min-h-11 shrink-0 items-center gap-2 self-start rounded-button text-body font-medium text-sky-700 transition-colors hover:text-sky-800 dark:text-sky-300 dark:hover:text-sky-200 md:self-auto"
+                  >
+                    Ver todos os produtos
+                    <Icon name="arrow-right" className="h-4 w-4" />
+                  </Link>
+                </div>
 
                 {featuredProducts.length === 0 ? (
                   <div className="mt-10 rounded-card border border-dashed border-neutral-300 px-6 py-14 text-center dark:border-neutral-700">
@@ -116,10 +132,12 @@ export function HomePage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-3 lg:gap-5">
-                    {featuredProducts.map((product) => (
-                      <CatalogProductCard key={product.id} product={product} />
-                    ))}
+                  <div className="mt-10">
+                    {PRODUCTS_LAYOUT === 'carousel' ? (
+                      <ProductCarousel products={featuredProducts} />
+                    ) : (
+                      <ProductGrid products={featuredProducts} />
+                    )}
                   </div>
                 )}
               </section>
@@ -179,7 +197,7 @@ export function HomePage() {
                       >
                         <span
                           aria-hidden="true"
-                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-pill bg-sky-700 text-body font-semibold text-white dark:bg-sky-600"
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-pill bg-sky-700 text-body font-semibold text-white dark:bg-sky-300 dark:text-neutral-950"
                         >
                           {index + 1}
                         </span>

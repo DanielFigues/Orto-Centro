@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-do
 import { Header } from './components/layout/Header'
 import { Footer } from './components/layout/Footer'
 import { HomePage } from './pages/HomePage'
+import { CatalogPage } from './pages/CatalogPage'
 import { AdminPage } from './pages/AdminPage'
 import { ProductDetailPage } from './pages/ProductDetailPage'
 import { CategoryPage } from './pages/CategoryPage'
@@ -82,6 +83,7 @@ function App() {
       <ScrollManager />
       <Routes>
         <Route path="/admin" element={<AdminPage />} />
+        <Route path="/catalogo" element={<CatalogPage />} />
         <Route path="/produto/:id" element={<ProductLayout />} />
         <Route path="/categoria/:categoryName" element={<CategoryPage />} />
         <Route path="*" element={<HomeLayout />} />

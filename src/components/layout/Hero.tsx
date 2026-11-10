@@ -1,25 +1,33 @@
 ﻿import SplitText from '../bits/SplitText'
+import { Icon } from '../ui/Icon'
 
 export function Hero() {
   return (
     <section
       id="inicio"
-      className="relative min-h-[70vh] flex items-center justify-center bg-fixed bg-cover bg-center overflow-hidden scroll-mt-40"
+      className="relative isolate flex min-h-svh flex-col overflow-hidden bg-cover bg-center md:bg-fixed"
       style={{ backgroundImage: 'url(/acessibilidade.png)' }}
     >
-      <div className="absolute inset-0 bg-black/70 z-0" />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 z-0 bg-black/55"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 bottom-0 z-0 h-3/4 bg-gradient-to-t from-black/90 via-black/45 to-transparent"
+      />
 
-      <div className="relative z-10 mx-auto w-full px-4 py-16 sm:px-6">
-        <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
-          <div className="flex gap-4 text-6xl md:text-8xl font-black">
+      <div className="relative z-10 flex flex-1 items-center justify-center px-[var(--page-gutter)] pb-10 pt-36 sm:pt-32 lg:pt-24">
+        <div className="mx-auto flex w-full max-w-4xl flex-col items-center text-center">
+          <div className="flex gap-4 text-5xl font-black sm:text-6xl md:text-8xl">
             <div className="text-blue-500">
               <SplitText
                 text="Orto"
                 tag="span"
                 splitType="chars"
-                duration={2}
-                delay={55}
-                from={{ opacity: 0, y: 40, filter: 'blur(8px)' }}
+                duration={0.5}
+                delay={25}
+                from={{ opacity: 0, y: 24, filter: 'blur(6px)' }}
                 to={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               />
             </div>
@@ -28,17 +36,31 @@ export function Hero() {
                 text="Centro"
                 tag="span"
                 splitType="chars"
-                duration={2}
-                delay={55}
-                from={{ opacity: 0, y: 40, filter: 'blur(8px)' }}
+                duration={0.5}
+                delay={25}
+                from={{ opacity: 0, y: 24, filter: 'blur(6px)' }}
                 to={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               />
             </div>
           </div>
-          <p className="mt-7 max-w-xl text-xs font-light uppercase tracking-[0.35em] text-slate-200 sm:text-sm">
-            PRODUTOS DE APOIO E ACESSIBILIDADE PARA O SEU DIA A DIA
+
+          <p className="mt-6 max-w-xl text-body font-medium uppercase tracking-widest text-white motion-safe:animate-hero-subtitle sm:mt-7 sm:text-body-lg">
+            Produtos de apoio e acessibilidade para o seu dia a dia
           </p>
         </div>
+      </div>
+
+      <div className="relative z-10 flex justify-center pb-8">
+        <a
+          href="#categorias"
+          className="focus-ring group inline-flex min-h-11 items-center gap-2 rounded-pill px-4 text-label font-medium uppercase tracking-widest text-white/90 transition-colors hover:text-white"
+        >
+          Ver categorias
+          <Icon
+            name="chevron-down"
+            className="h-4 w-4 motion-safe:animate-hero-cue"
+          />
+        </a>
       </div>
     </section>
   )

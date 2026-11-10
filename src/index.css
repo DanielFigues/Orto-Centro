@@ -27,6 +27,8 @@
 
   --animate-fade-up: fade-up 0.7s ease-out both;
   --animate-fade-in: fade-in 0.6s ease-out both;
+  --animate-hero-subtitle: fade-in 0.4s var(--ease-out) 0.3s both;
+  --animate-hero-cue: hero-cue 1.8s var(--ease-out) infinite;
 
   @keyframes fade-up {
     from {
@@ -47,6 +49,18 @@
       opacity: 1;
     }
   }
+
+  @keyframes hero-cue {
+    0%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.75;
+    }
+    50% {
+      transform: translateY(4px);
+      opacity: 1;
+    }
+  }
 }
 
 :root {
@@ -64,6 +78,7 @@
   --content-max: 80rem;
   --page-gutter: clamp(1rem, 4vw, 2rem);
   --section-y: clamp(80px, 12vw, 160px);
+  --aspect-product-card: 4 / 5;
 
   --duration-fast: 150ms;
   --duration-base: 250ms;
@@ -128,6 +143,45 @@ body {
 .tap-target {
   min-width: var(--tap-min);
   min-height: var(--tap-min);
+}
+
+.product-card-media {
+  aspect-ratio: var(--aspect-product-card);
+}
+
+.product-carousel-track {
+  --carousel-gap: 1rem;
+  display: flex;
+  gap: var(--carousel-gap);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  padding: 0.5rem;
+  margin-inline: -0.5rem;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.product-carousel-item {
+  flex: 0 0 80%;
+  scroll-snap-align: start;
+}
+
+@media (min-width: 768px) {
+  .product-carousel-track {
+    --carousel-gap: 1.25rem;
+  }
+
+  .product-carousel-item {
+    flex-basis: 30%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-carousel-track {
+    scroll-behavior: auto;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useCatalog } from '../context/catalogContextValue'
-import { CatalogProductCard } from '../components/catalog/CatalogProductCard'
+import { ProductCard } from '../components/catalog/ProductCard'
 import { Header } from '../components/layout/Header'
 import { Footer } from '../components/layout/Footer'
 import { Icon } from '../components/ui/Icon'
@@ -144,7 +144,7 @@ export function CategoryPage() {
 
             <div className="product-grid mt-5 grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5 xl:grid-cols-4">
               {products.map((product) => (
-                <CatalogProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} />
               ))}
 
               {products.length === 0 && (
