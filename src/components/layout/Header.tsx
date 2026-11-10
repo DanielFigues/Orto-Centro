@@ -1,6 +1,7 @@
-﻿import { useEffect, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTheme } from '../../hooks/useTheme'
+import { categories as canonicalCategories, categoryPath as toCategoryPath } from '../../data/categories'
 import { sectionLinks } from '../../data/sections'
 import { useCatalog } from '../../context/catalogContextValue'
 import { Icon } from '../ui/Icon'
@@ -8,8 +9,23 @@ import { Icon } from '../ui/Icon'
 export function Header() {
   const { theme, toggleTheme } = useTheme()
   const { pathname } = useLocation()
-  const { categories } = useCatalog()
+  const { categories: catalogCategories } = useCatalog()
   const [visible, setVisible] = useState(false)
+
+  const navCategories = useMemo(() => {
+    const byName = new Map(
+      catalogCategories.map((category) => [category.name, category]),
+    )
+    const canonical = canonicalCategories.map(
+      ({ name }) => byName.get(name) ?? { name, subcategories: [] },
+    )
+    const canonicalNames = new Set(canonicalCategories.map(({ name }) => name))
+    const extra = catalogCategories.filter(
+      (category) => !canonicalNames.has(category.name),
+    )
+
+    return [...canonical, ...extra]
+  }, [catalogCategories])
 
   useEffect(() => {
     const onScroll = () => {
@@ -42,8 +58,8 @@ export function Header() {
             className="hidden flex-1 items-center justify-center gap-1 lg:flex"
             aria-label="Categorias de produtos"
           >
-            {categories.map(({ name, subcategories }) => {
-              const categoryPath = `/categoria/${encodeURIComponent(name)}`
+            {navCategories.map(({ name, subcategories }) => {
+              const categoryPath = toCategoryPath(name)
               const isActive = pathname === categoryPath
 
               return (

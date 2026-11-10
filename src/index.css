@@ -6,6 +6,25 @@
 @theme {
   --font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
 
+  --text-base: 1.0625rem;
+  --text-body: 1.0625rem;
+  --text-body-lg: clamp(1.125rem, 1.5vw, 1.25rem);
+  --text-label: 0.875rem;
+  --text-h3: clamp(1.25rem, 2vw, 1.5rem);
+  --text-h2: clamp(2rem, 4vw, 3rem);
+  --text-h1: clamp(2.5rem, 6vw, 4.5rem);
+  --text-display: clamp(3rem, 9vw, 7rem);
+  --text-section-title: clamp(2rem, 5vw, 3.5rem);
+
+  --radius-card: 1rem;
+  --radius-card-lg: 1.5rem;
+  --radius-button: 0.75rem;
+  --radius-pill: 9999px;
+
+  --leading-tight: 1.1;
+  --leading-body: 1.6;
+  --leading-relaxed: 1.7;
+
   --animate-fade-up: fade-up 0.7s ease-out both;
   --animate-fade-in: fade-in 0.6s ease-out both;
 
@@ -30,6 +49,32 @@
   }
 }
 
+:root {
+  --color-brand-blue: #0ea5e9;
+  --color-brand-blue-ink: #0369a1;
+  --color-brand-green: #22c55e;
+  --color-brand-green-ink: #15803d;
+  --color-ink: #171717;
+  --color-ink-muted: #525252;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f5f5f5;
+  --color-border: #e5e5e5;
+  --color-focus: #0369a1;
+
+  --content-max: 80rem;
+  --page-gutter: clamp(1rem, 4vw, 2rem);
+  --section-y: clamp(80px, 12vw, 160px);
+
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --tap-min: 44px;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 3px;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -40,6 +85,8 @@ body {
   background-image: linear-gradient(180deg, var(--color-neutral-100) 0%, #ffffff 60%);
   background-attachment: fixed;
   color: var(--color-neutral-900);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition:
@@ -53,9 +100,47 @@ body {
   color: var(--color-neutral-100);
 }
 
+@media (max-width: 767px) {
+  body {
+    background-attachment: scroll;
+  }
+}
+
+.section-y {
+  padding-block: var(--section-y);
+}
+
+.page-gutter {
+  padding-inline: var(--page-gutter);
+}
+
+.content-container {
+  width: 100%;
+  max-width: var(--content-max);
+  margin-inline: auto;
+}
+
+.focus-ring:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.tap-target {
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

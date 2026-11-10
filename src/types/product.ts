@@ -11,5 +11,6 @@
   technical_specs?: string
   brand?: string
   sizes?: string
+  price?: number | null
   is_active: boolean
 }

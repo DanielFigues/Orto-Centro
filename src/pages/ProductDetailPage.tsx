@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Product } from '../types/product'
 import { fetchProducts } from '../services/api'
+import { ProductPrice } from '../components/catalog/ProductPrice'
 import { Icon } from '../components/ui/Icon'
 
 interface ProductDetailPageProps {
@@ -192,6 +193,11 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
                   {product.short_description}
                 </p>
               )}
+
+              <ProductPrice
+                price={product.price}
+                className="text-h3 font-semibold text-neutral-900 dark:text-white"
+              />
 
               {product.brand && (
                 <div>
