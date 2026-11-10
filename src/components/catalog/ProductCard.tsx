@@ -22,6 +22,8 @@ export function ProductCard({ product }: ProductCardProps) {
           <img
             src={product.image_url}
             alt={product.name}
+            width={800}
+            height={1000}
             loading="lazy"
             decoding="async"
             draggable={false}

@@ -7,7 +7,7 @@ interface CatalogEmptyStateProps {
 export function CatalogEmptyState({ onResetFilters }: CatalogEmptyStateProps) {
   return (
     <div className="catalog-empty-state col-span-full flex flex-col items-center gap-3 rounded-xl border border-dashed border-neutral-300 px-6 py-14 text-center dark:border-neutral-700">
-      <Icon name="search" className="h-8 w-8 text-neutral-400 dark:text-neutral-600" />
+      <Icon name="search" className="h-8 w-8 text-neutral-500 dark:text-neutral-400" />
       <p className="catalog-empty-state-message text-sm font-medium text-neutral-600 dark:text-neutral-300">
         Nenhum produto encontrado.
       </p>

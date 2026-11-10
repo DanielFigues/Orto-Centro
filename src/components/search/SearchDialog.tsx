@@ -93,6 +93,8 @@ function SearchResultOption({
             src={product.image_url}
             alt=""
             aria-hidden="true"
+            width={48}
+            height={48}
             loading="lazy"
             decoding="async"
             draggable={false}
@@ -100,7 +102,7 @@ function SearchResultOption({
             className="h-full w-full object-cover"
           />
         ) : (
-          <Icon name="tools" className="h-5 w-5 text-neutral-400 dark:text-neutral-500" />
+          <Icon name="tools" className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
         )}
       </span>
 
@@ -291,7 +293,7 @@ export function SearchDialog({ onClose, returnFocusRef }: SearchDialogProps) {
                   </span>
                   <Icon
                     name="chevron-right"
-                    className="h-4 w-4 shrink-0 text-neutral-400 dark:text-neutral-500"
+                    className="h-4 w-4 shrink-0 text-neutral-500 dark:text-neutral-400"
                   />
                 </Link>
               </li>
@@ -314,7 +316,7 @@ export function SearchDialog({ onClose, returnFocusRef }: SearchDialogProps) {
         <div className="px-1 py-8 text-center">
           <Icon
             name="search"
-            className="mx-auto h-8 w-8 text-neutral-400 dark:text-neutral-500"
+            className="mx-auto h-8 w-8 text-neutral-500 dark:text-neutral-400"
           />
           <p className="mt-3 text-body font-medium text-neutral-900 dark:text-white">
             Nenhum resultado. Tente: {searchSuggestionTerms.join(', ')}.

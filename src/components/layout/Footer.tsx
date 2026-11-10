@@ -17,6 +17,10 @@ export function Footer() {
             <img
               src="/logo.png"
               alt="Orto Centro"
+              width={174}
+              height={154}
+              loading="lazy"
+              decoding="async"
               className="h-10 w-auto object-contain"
             />
           </Link>

@@ -86,6 +86,9 @@ export function Header() {
             <img
               src="/logo.png"
               alt="Orto Centro"
+              width={174}
+              height={154}
+              decoding="async"
               className="h-10 w-auto object-contain"
             />
           </Link>
