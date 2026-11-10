@@ -10,6 +10,7 @@ import { Footer } from '../components/layout/Footer'
 import { Hero } from '../components/layout/Hero'
 import { SectionHeading } from '../components/layout/SectionHeading'
 import { Icon } from '../components/ui/Icon'
+import { ScrollRail } from '../components/ui/ScrollRail'
 import { useCatalog } from '../context/catalogContextValue'
 import { categories } from '../data/categories'
 import { homeBenefits } from '../data/home'
@@ -46,12 +47,28 @@ export function HomePage() {
                   eyebrow="Categorias"
                   title="Encontre pelo que você precisa"
                   description="Navegue por categorias pensadas para a rotina, o conforto e a segurança de quem você cuida."
+                  action={
+                    <Link
+                      to="/#catalogo"
+                      className="focus-ring inline-flex min-h-11 shrink-0 items-center gap-2 rounded-button text-body font-medium text-sky-700 transition-colors hover:text-sky-800 dark:text-sky-300 dark:hover:text-sky-200"
+                    >
+                      Ver todas as categorias
+                      <Icon name="arrow-right" className="h-4 w-4" />
+                    </Link>
+                  }
                 />
 
-                <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-3 lg:gap-5 xl:grid-cols-5">
-                  {categories.map((category) => (
-                    <CategoryCard key={category.name} category={category} />
-                  ))}
+                <div className="mt-10">
+                  <ScrollRail
+                    ariaLabel="Categorias de produtos"
+                    arrowsOnSquareImage
+                    prevAriaLabel="Ver categorias anteriores"
+                    nextAriaLabel="Ver próximas categorias"
+                  >
+                    {categories.map((category) => (
+                      <CategoryCard key={category.id} category={category} />
+                    ))}
+                  </ScrollRail>
                 </div>
               </section>
             </FadeContent>

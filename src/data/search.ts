@@ -1,5 +1,7 @@
 export const searchSuggestionTerms = [
   'Cadeiras de rodas',
-  'Barras',
-  'Almofadas',
+  'Barras de segurança',
+  'Almofadas de espuma',
+  'Aparelhos de pressão',
+  'Faixas elásticas',
 ]

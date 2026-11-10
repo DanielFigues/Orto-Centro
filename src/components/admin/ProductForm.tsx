@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
+import { categories as canonicalCategories } from '../../data/categories'
 import type { ProductInput } from '../../services/api'
 import type { Product } from '../../types/product'
 import { ConfirmDialog } from './ConfirmDialog'
@@ -240,8 +241,30 @@ export function ProductForm({
   const [pendingImage, setPendingImage] = useState<ImageFieldKey | null>(null)
   const [pendingSpecIndex, setPendingSpecIndex] = useState<number | null>(null)
 
-  const categories = useMemo(() => uniqueSorted(products.map((p) => p.category)), [products])
-  const subcategories = useMemo(() => uniqueSorted(products.map((p) => p.subcategory)), [products])
+  const categories = useMemo(
+    () =>
+      uniqueSorted([
+        ...canonicalCategories.map((category) => category.name),
+        ...products.map((p) => p.category),
+      ]),
+    [products],
+  )
+  const subcategories = useMemo(() => {
+    const selectedCategoryName =
+      form.category === 'Adicionar nova...'
+        ? form.categoryCustom.trim()
+        : form.category.trim()
+    const canonical = canonicalCategories.find(
+      (category) => category.name === selectedCategoryName,
+    )
+    const fromCategory = canonical
+      ? canonical.subcategories.map((subcategory) => subcategory.name)
+      : []
+    const fromProducts = products
+      .filter((p) => selectedCategoryName === '' || p.category === selectedCategoryName)
+      .map((p) => p.subcategory)
+    return uniqueSorted([...fromCategory, ...fromProducts])
+  }, [form.category, form.categoryCustom, products])
   const brands = useMemo(() => uniqueSorted(products.map((p) => p.brand)), [products])
 
   const sizeOptions = useMemo(() => {

@@ -5,7 +5,7 @@ import { ProductCard } from '../components/catalog/ProductCard'
 import { ProductPrice } from '../components/catalog/ProductPrice'
 import { Icon } from '../components/ui/Icon'
 import { useCatalog } from '../context/catalogContextValue'
-import { categoryPath } from '../data/categories'
+import { categoryPath, getCategoryByName } from '../data/categories'
 import { buildWhatsAppUrl } from '../data/store'
 
 interface ProductDetailPageProps {
@@ -255,7 +255,7 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
           <li aria-hidden="true">/</li>
           <li>
             <Link
-              to={categoryPath(product.category)}
+              to={categoryPath(getCategoryByName(product.category) ?? product.category)}
               className="focus-ring rounded transition-colors hover:text-sky-700 dark:hover:text-sky-300"
             >
               {product.category}
@@ -343,7 +343,7 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
         <div className="min-w-0 space-y-5">
           <div>
             <Link
-              to={categoryPath(product.category)}
+              to={categoryPath(getCategoryByName(product.category) ?? product.category)}
               className="focus-ring inline-flex min-h-11 items-center rounded-button text-label font-medium uppercase tracking-wide text-sky-700 transition-colors hover:text-sky-800 dark:text-sky-300 dark:hover:text-sky-200"
             >
               {product.category}

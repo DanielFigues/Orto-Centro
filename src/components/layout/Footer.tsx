@@ -24,7 +24,7 @@ export function Footer() {
               className="h-10 w-auto object-contain"
             />
           </Link>
-          <p className="mt-4 max-w-xs text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+          <p className="mt-4 max-w-[60ch] text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
             Produtos de apoio e acessibilidade para o dia a dia, com cuidado e
             qualidade para você e sua família.
           </p>
@@ -35,10 +35,10 @@ export function Footer() {
             Categorias
           </h3>
           <ul className="mt-4 space-y-1 text-sm">
-            {categories.map(({ name }) => (
-              <li key={name}>
-                <Link to={categoryPath(name)} className={linkClass}>
-                  {name}
+            {categories.map((category) => (
+              <li key={category.id}>
+                <Link to={categoryPath(category)} className={linkClass}>
+                  {category.name}
                 </Link>
               </li>
             ))}

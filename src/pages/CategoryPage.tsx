@@ -1,43 +1,53 @@
 import { useMemo } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, Navigate, useSearchParams } from 'react-router-dom'
 import { useCatalog } from '../context/catalogContextValue'
 import { ProductCard } from '../components/catalog/ProductCard'
 import { Header } from '../components/layout/Header'
 import { Footer } from '../components/layout/Footer'
 import { Icon } from '../components/ui/Icon'
+import { getCategoryBySlug, resolveSubcategorySlug } from '../data/categories'
 
-export function CategoryPage() {
-  const { categoryName } = useParams()
+interface CategoryPageProps {
+  categorySlug: string
+}
+
+export function CategoryPage({ categorySlug }: CategoryPageProps) {
   const [searchParams, setSearchParams] = useSearchParams()
-  const category = categoryName ?? ''
-  const subcategory = searchParams.get('subcategoria') ?? ''
   const { activeProducts, isLoading, errorMessage, retry } = useCatalog()
+  const category = getCategoryBySlug(categorySlug)
+  const subcategoryParam = searchParams.get('subcategoria') ?? ''
+  const selectedSubcategorySlug =
+    category && subcategoryParam
+      ? resolveSubcategorySlug(category, subcategoryParam)
+      : undefined
+  const selectedSubcategory = category && selectedSubcategorySlug
+    ? category.subcategories.find((item) => item.slug === selectedSubcategorySlug)
+    : undefined
 
   const categoryProducts = useMemo(
-    () => activeProducts.filter((product) => product.category === category),
+    () =>
+      category
+        ? activeProducts.filter((product) => product.category === category.name)
+        : [],
     [activeProducts, category],
   )
 
-  const subcategories = useMemo(() => {
-    const labels = new Set<string>()
-    for (const product of categoryProducts) {
-      if (product.subcategory !== '') {
-        labels.add(product.subcategory)
-      }
-    }
-    return [...labels].sort((a, b) => a.localeCompare(b, 'pt-BR'))
-  }, [categoryProducts])
-
   const products = useMemo(
     () =>
-      subcategory === ''
-        ? categoryProducts
-        : categoryProducts.filter((product) => product.subcategory === subcategory),
-    [categoryProducts, subcategory],
+      selectedSubcategory
+        ? categoryProducts.filter(
+            (product) => product.subcategory === selectedSubcategory.name,
+          )
+        : categoryProducts,
+    [categoryProducts, selectedSubcategory],
   )
 
-  const selectSubcategory = (value: string) => {
-    setSearchParams(value === '' ? {} : { subcategoria: value })
+  if (!category) {
+    return <Navigate to="/" replace />
+  }
+
+  const selectSubcategory = (slug: string) => {
+    setSearchParams(slug === '' ? {} : { subcategoria: slug })
   }
 
   return (
@@ -81,16 +91,16 @@ export function CategoryPage() {
                 </li>
                 <li aria-hidden="true">/</li>
                 <li className="font-medium text-neutral-900 dark:text-white">
-                  {category}
+                  {category.name}
                 </li>
-                {subcategory !== '' && (
+                {selectedSubcategory ? (
                   <>
                     <li aria-hidden="true">/</li>
                     <li className="font-medium text-neutral-900 dark:text-white">
-                      {subcategory}
+                      {selectedSubcategory.name}
                     </li>
                   </>
-                )}
+                ) : null}
               </ol>
             </nav>
 
@@ -99,14 +109,14 @@ export function CategoryPage() {
                 id="categoria-titulo"
                 className="line-clamp-3 text-h2 font-semibold leading-[1.1] tracking-[-0.02em] text-neutral-900 dark:text-white md:line-clamp-2"
               >
-                {category}
+                {category.name}
               </h1>
               <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
                 {products.length} {products.length === 1 ? 'produto' : 'produtos'}
               </p>
             </div>
 
-            {subcategories.length > 0 && (
+            {category.subcategories.length > 0 && (
               <div
                 className="mt-5 flex flex-wrap gap-2"
                 role="group"
@@ -115,28 +125,28 @@ export function CategoryPage() {
                 <button
                   type="button"
                   onClick={() => selectSubcategory('')}
-                  aria-pressed={subcategory === ''}
+                  aria-pressed={!selectedSubcategory}
                   className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 ${
-                    subcategory === ''
+                    !selectedSubcategory
                       ? 'border-sky-500 bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300'
                       : 'border-neutral-300 text-neutral-600 hover:border-neutral-400 hover:text-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-neutral-500 dark:hover:text-white'
                   }`}
                 >
                   Todos
                 </button>
-                {subcategories.map((label) => (
+                {category.subcategories.map((subcategory) => (
                   <button
-                    key={label}
+                    key={subcategory.slug}
                     type="button"
-                    onClick={() => selectSubcategory(label)}
-                    aria-pressed={subcategory === label}
+                    onClick={() => selectSubcategory(subcategory.slug)}
+                    aria-pressed={selectedSubcategory?.slug === subcategory.slug}
                     className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 ${
-                      subcategory === label
+                      selectedSubcategory?.slug === subcategory.slug
                         ? 'border-sky-500 bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300'
                         : 'border-neutral-300 text-neutral-600 hover:border-neutral-400 hover:text-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-neutral-500 dark:hover:text-white'
                     }`}
                   >
-                    {label}
+                    {subcategory.name}
                   </button>
                 ))}
               </div>

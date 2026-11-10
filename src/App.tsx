@@ -8,6 +8,12 @@ import { AdminPage } from './pages/AdminPage'
 import { ProductDetailPage } from './pages/ProductDetailPage'
 import { CategoryPage } from './pages/CategoryPage'
 import { CatalogProvider } from './context/CatalogContext'
+import {
+  REMOVED_CATEGORY_REDIRECT,
+  categoryPath,
+  isRemovedCategory,
+  resolveCategorySlug,
+} from './data/categories'
 
 function ScrollManager() {
   const { pathname, hash, key } = useLocation()
@@ -77,6 +83,37 @@ function ProductLayout() {
   )
 }
 
+function CategoryRoute() {
+  const { categorySlug } = useParams()
+  const location = useLocation()
+  const raw = categorySlug ?? ''
+
+  if (isRemovedCategory(raw)) {
+    return <Navigate to={REMOVED_CATEGORY_REDIRECT} replace />
+  }
+
+  const canonical = resolveCategorySlug(raw)
+
+  if (canonical === 'vida-diaria') {
+    return <Navigate to={REMOVED_CATEGORY_REDIRECT} replace />
+  }
+
+  if (canonical && canonical !== raw) {
+    return (
+      <Navigate
+        to={`${categoryPath(canonical)}${location.search}${location.hash}`}
+        replace
+      />
+    )
+  }
+
+  if (!canonical) {
+    return <Navigate to="/" replace />
+  }
+
+  return <CategoryPage categorySlug={canonical} />
+}
+
 function App() {
   return (
     <CatalogProvider>
@@ -85,7 +122,7 @@ function App() {
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/catalogo" element={<CatalogPage />} />
         <Route path="/produto/:id" element={<ProductLayout />} />
-        <Route path="/categoria/:categoryName" element={<CategoryPage />} />
+        <Route path="/categoria/:categorySlug" element={<CategoryRoute />} />
         <Route path="*" element={<HomeLayout />} />
       </Routes>
     </CatalogProvider>

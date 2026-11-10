@@ -277,9 +277,9 @@ export function SearchDialog({ onClose, returnFocusRef }: SearchDialogProps) {
           </p>
           <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2">
             {categories.map((category) => (
-              <li key={category.name}>
+              <li key={category.id}>
                 <Link
-                  to={categoryPath(category.name)}
+                  to={categoryPath(category)}
                   onClick={onClose}
                   className="focus-ring flex min-h-11 items-center gap-3 rounded-button px-3 py-2.5 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
                 >
@@ -288,7 +288,7 @@ export function SearchDialog({ onClose, returnFocusRef }: SearchDialogProps) {
                       {category.name}
                     </span>
                     <span className="block truncate text-label text-neutral-600 dark:text-neutral-400">
-                      {category.summary}
+                      {category.tagline}
                     </span>
                   </span>
                   <Icon
