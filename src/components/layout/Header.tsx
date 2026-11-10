@@ -43,7 +43,7 @@ function CategoryMenuItem({
 
       {category.subcategories.length > 0 && (
         <div className="invisible absolute left-0 top-full z-50 translate-y-1 pt-2 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
-          <div className="max-h-[70svh] w-64 overflow-y-auto rounded-md border border-neutral-200 bg-white p-1.5 shadow-lg dark:border-neutral-800 dark:bg-slate-900">
+          <div className="header-glass-panel max-h-[70svh] w-64 overflow-y-auto rounded-md border border-neutral-200 p-1.5 shadow-lg dark:border-neutral-800">
             {category.subcategories.map((subcategory) => (
               <Link
                 key={subcategory.slug}
@@ -125,9 +125,7 @@ export function Header() {
     <>
       <header
         className={`sticky top-0 z-50 transition-colors duration-300 ${
-          overHero
-            ? 'bg-transparent'
-            : 'bg-white dark:bg-neutral-950'
+          overHero ? 'bg-transparent' : 'header-glass'
         }`}
       >
         <div
@@ -181,7 +179,7 @@ export function Header() {
                   </button>
 
                   <div className="invisible absolute right-0 top-full z-50 translate-y-1 pt-2 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
-                    <div className="max-h-[70svh] w-80 overflow-y-auto rounded-md border border-neutral-200 bg-white p-2 shadow-lg dark:border-neutral-800 dark:bg-slate-900">
+                    <div className="header-glass-panel max-h-[70svh] w-80 overflow-y-auto rounded-md border border-neutral-200 p-2 shadow-lg dark:border-neutral-800">
                       {moreCategories.map((category) => (
                         <div key={category.id} className="rounded-md p-1">
                           <Link
@@ -254,7 +252,7 @@ export function Header() {
                       ? 'border-sky-500 bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300'
                       : overHero
                         ? 'border-neutral-300 bg-white/70 text-neutral-900 dark:border-neutral-700 dark:bg-neutral-900/70 dark:text-neutral-100'
-                        : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800'
+                        : 'header-glass border-neutral-200 text-neutral-700 hover:border-neutral-400 dark:border-neutral-700 dark:text-neutral-300'
                   }`}
                 >
                   {category.name}
