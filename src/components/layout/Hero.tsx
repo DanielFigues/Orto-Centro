@@ -1,5 +1,4 @@
 ﻿import SplitText from '../bits/SplitText'
-import { Icon } from '../ui/Icon'
 
 export function Hero() {
   return (
@@ -50,18 +49,7 @@ export function Hero() {
         </div>
       </div>
 
-      <div className="relative z-10 flex justify-center pb-8">
-        <a
-          href="#categorias"
-          className="focus-ring group inline-flex min-h-11 items-center gap-2 rounded-pill px-4 text-label font-medium uppercase tracking-widest text-white/90 transition-colors hover:text-white"
-        >
-          Ver categorias
-          <Icon
-            name="chevron-down"
-            className="h-4 w-4 motion-safe:animate-hero-cue"
-          />
-        </a>
-      </div>
+      <div className="relative z-10 flex justify-center pb-8" aria-hidden="true" />
     </section>
   )
 }

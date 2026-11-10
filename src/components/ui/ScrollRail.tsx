@@ -238,7 +238,7 @@ export function ScrollRail({
               className="scroll-rail-arrow scroll-rail-arrow-prev focus-ring"
               style={arrowTop != null ? { top: arrowTop } : undefined}
             >
-              <Icon name="chevron-left" className="h-6 w-6" />
+              <Icon name="chevron-left" className="h-5 w-5" />
             </button>
           ) : null}
           {canScrollNext ? (
@@ -249,7 +249,7 @@ export function ScrollRail({
               className="scroll-rail-arrow scroll-rail-arrow-next focus-ring"
               style={arrowTop != null ? { top: arrowTop } : undefined}
             >
-              <Icon name="chevron-right" className="h-6 w-6" />
+              <Icon name="chevron-right" className="h-5 w-5" />
             </button>
           ) : null}
         </>

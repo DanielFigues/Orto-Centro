@@ -2,6 +2,28 @@
 
 declare(strict_types=1);
 
+// --- LEITOR DE FICHEIRO .ENV ---
+$envPath = __DIR__ . '/../.env'; 
+if (!file_exists($envPath)) {
+    $envPath = __DIR__ . '/.env'; // Fallback para a pasta backend
+}
+
+if (file_exists($envPath)) {
+    $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || strpos($line, '#') === 0) continue; // Ignora linhas vazias e comentários
+        if (strpos($line, '=') !== false) {
+            list($key, $value) = explode('=', $line, 2);
+            $key = trim($key);
+            $value = trim($value, " \t\n\r\0\x0B\"'"); // Remove espaços e aspas
+            putenv("{$key}={$value}");
+            $_ENV[$key] = $value;
+        }
+    }
+}
+// -------------------------------
+
 require __DIR__ . '/database.php';
 
 header('Content-Type: application/json');
@@ -31,11 +53,10 @@ function fail(int $status, string $message): never
 {
     respond($status, ['error' => $message]);
 }
-
 function bearer_or_basic_ok(): bool
 {
-    $token = getenv('API_TOKEN');
-    if ($token === false || trim($token) === '') {
+    $token = getenv('API_TOKEN') ?: ($_ENV['API_TOKEN'] ?? '');
+    if ($token === '' || $token === false) {
         return false;
     }
 

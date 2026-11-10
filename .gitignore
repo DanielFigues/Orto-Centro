@@ -53,3 +53,5 @@ dist/uploads/*
 *.tmp
 *.temp
 tmp_*
+
+.AGENTS.md

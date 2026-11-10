@@ -38,18 +38,18 @@ export function ProductCard({ product }: ProductCardProps) {
         )}
       </div>
 
-      <div className="product-card-body flex flex-1 flex-col gap-1.5 p-4">
-        <h3 className="product-card-title text-body font-semibold leading-snug text-neutral-900 dark:text-white">
+      <div className="product-card-body flex flex-1 flex-col gap-1.5 p-4 pt-5">
+        <h3 className="product-card-title text-[22px] font-medium leading-snug tracking-[-0.01em] text-neutral-900 dark:text-white xl:text-[24px]">
           {product.name}
         </h3>
 
-        <p className="product-card-category text-label font-medium uppercase tracking-wide text-sky-700 dark:text-sky-300">
+        <p className="product-card-category text-[14px] font-medium uppercase tracking-wide text-sky-700 dark:text-sky-300">
           {product.category}
         </p>
 
         <ProductPrice
           price={product.price}
-          className="mt-auto pt-2 text-body font-semibold text-neutral-900 dark:text-white"
+          className="mt-auto pt-2 text-[17px] font-medium text-neutral-900 dark:text-white"
         />
       </div>
     </Link>

@@ -24,7 +24,7 @@ function CategoryMenuItem({
       <Link
         to={categoryPath(category)}
         aria-haspopup={category.subcategories.length > 0 ? 'menu' : undefined}
-        className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 ${
+        className={`flex items-center gap-1 rounded-lg py-2 text-[16px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 ${
           isActive
             ? 'text-sky-700 dark:text-sky-300'
             : visible
@@ -121,7 +121,7 @@ export function Header() {
         }`}
       >
         <div className="border-b border-neutral-200/70 dark:border-neutral-800/70">
-          <div className="container flex h-16 items-center justify-between gap-4">
+          <div className="container flex h-[64px] items-center justify-between gap-4">
             <Link
               to="/"
               className="flex shrink-0 items-center"
@@ -138,7 +138,7 @@ export function Header() {
             </Link>
 
             <nav
-              className="hidden flex-1 items-center justify-center gap-1 lg:flex"
+              className="hidden flex-1 items-center justify-center gap-[28px] lg:flex"
               aria-label="Categorias de produtos"
             >
               {primaryCategories.map((category) => (
@@ -154,7 +154,7 @@ export function Header() {
                 <div className="group relative">
                   <button
                     type="button"
-                    className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 ${
+                    className={`flex items-center gap-1 rounded-lg py-2 text-[16px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 ${
                       visible
                         ? 'text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white'
                         : 'text-slate-800 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white'
