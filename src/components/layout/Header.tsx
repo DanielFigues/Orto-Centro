@@ -19,24 +19,24 @@ function CategoryMenuItem({
   visible: boolean
   isActive: boolean
 }) {
+  const baseClass = !visible
+    ? 'text-neutral-900 hover:text-neutral-700 dark:text-neutral-100 dark:hover:text-white'
+    : 'text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white'
+
   return (
     <div className="group relative">
       <Link
         to={categoryPath(category)}
         aria-haspopup={category.subcategories.length > 0 ? 'menu' : undefined}
         className={`flex items-center gap-1 rounded-lg py-2 text-[16px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 ${
-          isActive
-            ? 'text-sky-700 dark:text-sky-300'
-            : visible
-              ? 'text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white'
-              : 'text-slate-800 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white'
+          isActive ? 'text-sky-700 dark:text-sky-300' : baseClass
         }`}
       >
         {category.name}
         {category.subcategories.length > 0 && (
           <Icon
             name="chevron-down"
-            className="h-3.5 w-3.5 opacity-60 transition-transform duration-200 group-hover:rotate-180"
+            className="h-3.5 w-3.5 opacity-80 transition-transform duration-200 group-hover:rotate-180"
           />
         )}
       </Link>
@@ -63,7 +63,7 @@ function CategoryMenuItem({
 export function Header() {
   const { theme, toggleTheme } = useTheme()
   const { pathname } = useLocation()
-  const [visible, setVisible] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const searchButtonRef = useRef<HTMLButtonElement>(null)
   const inlineCount = Math.min(6, categories.length)
@@ -72,7 +72,7 @@ export function Header() {
 
   useEffect(() => {
     const onScroll = () => {
-      setVisible(window.scrollY > 0)
+      setScrolled(window.scrollY > 8)
     }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -111,16 +111,32 @@ export function Header() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
+  const atTop = !scrolled
+  const isHome = pathname === '/'
+  const overHero = atTop && isHome
+  const headerLinkClass = overHero
+    ? 'text-neutral-900 hover:text-neutral-700 dark:text-neutral-100 dark:hover:text-white'
+    : 'text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white'
+  const headerIconClass = overHero
+    ? 'text-neutral-900 hover:bg-black/5 hover:text-neutral-700 dark:text-neutral-100 dark:hover:bg-white/10 dark:hover:text-white'
+    : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white'
+
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
-          visible
-            ? 'bg-white shadow-md dark:bg-neutral-800'
-            : 'bg-transparent shadow-none'
+        className={`sticky top-0 z-50 transition-colors duration-300 ${
+          overHero
+            ? 'bg-transparent'
+            : 'bg-white dark:bg-neutral-950'
         }`}
       >
-        <div className="border-b border-neutral-200/70 dark:border-neutral-800/70">
+        <div
+          className={`border-b transition-colors duration-300 ${
+            overHero
+              ? 'border-transparent'
+              : 'border-neutral-200 dark:border-neutral-800'
+          }`}
+        >
           <div className="container flex h-[64px] items-center justify-between gap-4">
             <Link
               to="/"
@@ -145,7 +161,7 @@ export function Header() {
                 <CategoryMenuItem
                   key={category.id}
                   category={category}
-                  visible={visible}
+                  visible={!overHero}
                   isActive={pathname === categoryPath(category)}
                 />
               ))}
@@ -154,17 +170,13 @@ export function Header() {
                 <div className="group relative">
                   <button
                     type="button"
-                    className={`flex items-center gap-1 rounded-lg py-2 text-[16px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 ${
-                      visible
-                        ? 'text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white'
-                        : 'text-slate-800 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white'
-                    }`}
+                    className={`flex items-center gap-1 rounded-lg py-2 text-[16px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 ${headerLinkClass}`}
                     aria-haspopup="menu"
                   >
                     Mais
                     <Icon
                       name="chevron-down"
-                      className="h-3.5 w-3.5 opacity-60 transition-transform duration-200 group-hover:rotate-180"
+                      className="h-3.5 w-3.5 opacity-80 transition-transform duration-200 group-hover:rotate-180"
                     />
                   </button>
 
@@ -210,11 +222,7 @@ export function Header() {
                 aria-label="Buscar produtos"
                 aria-haspopup="dialog"
                 aria-keyshortcuts="/ Control+K Meta+K"
-                className={`focus-ring inline-flex h-11 w-11 items-center justify-center rounded-button transition-colors ${
-                  visible
-                    ? 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white'
-                    : 'text-slate-800 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white'
-                }`}
+                className={`focus-ring inline-flex h-11 w-11 items-center justify-center rounded-button transition-colors ${headerIconClass}`}
               >
                 <Icon name="search" className="h-5 w-5" />
               </button>
@@ -223,11 +231,7 @@ export function Header() {
                 type="button"
                 onClick={toggleTheme}
                 aria-label={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}
-                className={`focus-ring inline-flex h-11 w-11 items-center justify-center rounded-button transition-colors ${
-                  visible
-                    ? 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white'
-                    : 'text-slate-800 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white'
-                }`}
+                className={`focus-ring inline-flex h-11 w-11 items-center justify-center rounded-button transition-colors ${headerIconClass}`}
               >
                 {theme === 'dark' ? <Icon name="sun" /> : <Icon name="moon" />}
               </button>
@@ -248,7 +252,9 @@ export function Header() {
                   className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                     isActive
                       ? 'border-sky-500 bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300'
-                      : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800'
+                      : overHero
+                        ? 'border-neutral-300 bg-white/70 text-neutral-900 dark:border-neutral-700 dark:bg-neutral-900/70 dark:text-neutral-100'
+                        : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800'
                   }`}
                 >
                   {category.name}

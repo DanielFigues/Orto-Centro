@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { ProductCard } from '../components/catalog/ProductCard'
-import { ProductPrice } from '../components/catalog/ProductPrice'
 import { Icon } from '../components/ui/Icon'
 import { useCatalog } from '../context/catalogContextValue'
 import { categoryPath, getCategoryByName } from '../data/categories'
@@ -360,10 +359,11 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
             </p>
           ) : null}
 
-          <ProductPrice
-            price={product.price}
-            className="text-h3 font-semibold text-neutral-900 dark:text-white"
-          />
+          {typeof product.price === 'number' && Number.isFinite(product.price) && product.price > 0 ? (
+            <p className="text-h3 font-semibold text-neutral-900 dark:text-white">
+              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.price)}
+            </p>
+          ) : null}
 
           <div className="flex flex-col gap-3 sm:flex-row">
             <a

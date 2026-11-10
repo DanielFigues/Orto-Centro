@@ -54,4 +54,4 @@ dist/uploads/*
 *.temp
 tmp_*
 
-.AGENTS.md
+AGENTS.md

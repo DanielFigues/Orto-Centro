@@ -27,9 +27,9 @@
 
   --tracking-tight: -0.02em;
 
-  --animate-fade-up: fade-up 0.7s ease-out both;
-  --animate-fade-in: fade-in 0.6s ease-out both;
-  --animate-hero-subtitle: fade-in 0.4s var(--ease-out) 0.3s both;
+  --animate-fade-up: fade-up 1.1s ease-out both;
+  --animate-fade-in: fade-in 0.9s ease-out both;
+  --animate-hero-subtitle: fade-in 1s var(--ease-out) 0.6s both;
   --animate-hero-cue: hero-cue 1.8s var(--ease-out) infinite;
 
   @keyframes fade-up {
@@ -63,6 +63,8 @@
       opacity: 1;
     }
   }
+
+
 }
 
 :root {
@@ -82,12 +84,12 @@
   --gutter: clamp(16px, 4.5vw, 86px);
   --page-gutter: var(--gutter);
   --rail-inset: max(var(--gutter), calc((100% - var(--content-max)) / 2));
-  --section-y: clamp(40px, 4vw, 72px);
+  --section-y: clamp(32px, 3.5vw, 56px);
   --aspect-product-card: 4 / 5;
 
-  --duration-fast: 150ms;
-  --duration-base: 250ms;
-  --duration-slow: 400ms;
+  --duration-fast: 200ms;
+  --duration-base: 350ms;
+  --duration-slow: 700ms;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
   --tap-min: 44px;

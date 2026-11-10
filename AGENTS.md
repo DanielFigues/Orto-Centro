@@ -197,7 +197,7 @@ Regras adicionais:
 - Use sempre `src/components/catalog/CatalogProductCard.tsx`.
 - Não criar `FeaturedProductCard`, `ProductCardSmall`, `ProductCardHome` ou variações visuais.
 - O mesmo card deve ser usado na home, na listagem de categoria, em busca/filtros e em qualquer vitrine.
-- Estrutura visual única: mídia com proporção fixa (`aspect-ratio`), categoria (rótulo pequeno), nome, metadados e preço/“Consulte disponibilidade”.
+- Estrutura visual única: mídia com proporção fixa (`aspect-ratio`), categoria (rótulo pequeno), nome, metadados e preço (quando existir).
 - O card inteiro deve ser um link acessível (`<Link>`), não um `<article onClick>`. Não aninhe botão dentro de link; se houver CTA, use uma área separada ou a técnica de link esticado com cuidado.
 - Hover pode ter elevação sutil, mudança de borda ou zoom discreto na imagem (até ~1.05). Nada de glow, spotlight, pixel ou efeito 3D.
 
@@ -292,7 +292,7 @@ O site deve permitir que o cliente encontre e entenda o produto sem ligar para a
 
 - **Home:** hero claro, categorias visíveis, produtos em destaque e um caminho óbvio para o catálogo completo.
 - **Categoria:** breadcrumb, título, contagem de produtos, filtros de subcategoria quando existirem e grid com o card único de produto.
-- **Produto:** galeria de imagens, nome, categoria/subcategoria, descrição curta, marca, tamanhos, descrição completa, especificações técnicas, preço ou “Consulte disponibilidade” e CTA de contato oficial.
+- **Produto:** galeria de imagens, nome, categoria/subcategoria, descrição curta, marca, tamanhos, descrição completa, especificações técnicas, preço (quando existir) e CTA de contato oficial.
 - **Estados:** carregamento, erro e vazio devem ser explícitos, com texto útil e ação de recuperação (tentar novamente, voltar, limpar filtros). Reutilize `CatalogEmptyState` quando possível.
 - **Filtros:** devem refletir na URL, ter estado selecionado visível, opção “Todos” e um jeito fácil de limpar. Resultados dinâmicos usam `aria-live` para leitores de tela.
 - **Sem becos sem saída:** toda página tem Header/Footer e um caminho de volta (breadcrumb ou link para o catálogo).
@@ -301,16 +301,15 @@ O site deve permitir que o cliente encontre e entenda o produto sem ligar para a
 
 ---
 
-## 4. Preço e “Consulte disponibilidade”
+## 4. Preço
 
 - O catálogo **não vende online**. O preço é informativo quando existir.
-- Poucos produtos terão preço. O campo de preço ainda não existe no tipo `Product`/back-end atuais; quando for adicionado, deve ser **opcional e anulável** (`price?: number | null`).
+- Poucos produtos terão preço. O campo de preço é **opcional e anulável** (`price?: number | null`).
 - **Com preço:** formatar em BRL com `Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })`. Exibir de forma discreta no card e no detalhe.
-- **Sem preço:** exibir exatamente **“Consulte disponibilidade”**, sem variações como “Sob consulta”, “Preço a combinar”, “—”, “R$ 0,00” ou “Ligue para saber”.
-- O fallback deve ser um texto/rótulo padronizado e reutilizável (idealmente um componente `ProductPrice`). Se for um link, o texto do link deve ser “Consulte disponibilidade” e ele deve levar ao contato oficial (`contact.whatsappHref` ou `contact.phoneHref` em `src/data/sections.ts`).
-- Nunca invente preços, descontos, parcelas, frete ou disponibilidade.
+- **Sem preço:** não mostrar nenhum texto ou placeholder de preço (sem lacuna visual). Mostrar preço apenas quando ele existir.
+- Nunca invente preços, descontos, parcelas, frete ou estoque.
 - Não criar selos de promoção, contagem regressiva, “últimas unidades” ou qualquer pressão comercial.
-- Não usar “Comprar”, “Adicionar ao carrinho” ou “Finalizar compra”. Use “Ver detalhes”, “Falar com a loja”, “Consultar disponibilidade” quando fizer sentido.
+- Não usar “Comprar”, “Adicionar ao carrinho” ou “Finalizar compra”. Use “Ver detalhes”, “Falar com a loja” ou o contato oficial quando fizer sentido.
 
 ---
 
@@ -426,7 +425,7 @@ Depois de alterar:
 - [ ] `prefers-reduced-motion` desliga animações/autoplay/parallax.
 - [ ] Layout testado mentalmente em 390px e sem rolagem horizontal.
 - [ ] Imagens de marketing em arquivo de dados; imagens de produto vêm da API.
-- [ ] Preço ausente mostra exatamente “Consulte disponibilidade”.
+- [ ] Sem preço, nenhum placeholder/texto de preço é exibido e não há lacuna de layout.
 - [ ] Nenhum componente duplicado e nenhum preço/promoção inventado.
 - [ ] `npm run typecheck`, `npm run lint` e `npm run build` passam.
 - [ ] Listei os arquivos alterados na resposta final.
@@ -436,7 +435,7 @@ Depois de alterar:
 ## 9. O que nunca fazer
 
 - Criar carrinho, checkout, pagamento, cupom, promoção, desconto, urgência ou qualquer mecânica de e-commerce.
-- Inventar preço, disponibilidade, marca, medida ou especificação.
+- Inventar preço, estoque, marca, medida ou especificação.
 - Usar azul/verde em parágrafos ou títulos grandes.
 - Usar `outline: none` sem um foco visível equivalente.
 - Usar `onClick` em elemento não interativo para navegação.

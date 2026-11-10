@@ -1,6 +1,8 @@
 ﻿import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import FadeContent from '../components/bits/FadeContent'
 import { CategoryCard } from '../components/catalog/CategoryCard'
+import { FeaturedShowcase } from '../components/catalog/FeaturedShowcase'
 import { ProductCarousel } from '../components/catalog/ProductCarousel'
 import { ProductGrid } from '../components/catalog/ProductGrid'
 import { FaqSection } from '../components/home/FaqSection'
@@ -16,8 +18,8 @@ import { Icon } from '../components/ui/Icon'
 
 const FEATURED_PRODUCTS_LIMIT = 6
 
-// Alterne para 'grid' para comparar o layout de grade com o carrossel.
-const PRODUCTS_LAYOUT: 'carousel' | 'grid' = 'carousel'
+// Layout dos produtos em destaque: 'showcase' | 'carousel' | 'grid'
+const PRODUCTS_LAYOUT: 'showcase' | 'carousel' | 'grid' = 'showcase'
 
 export function HomePage() {
   const { activeProducts } = useCatalog()
@@ -34,12 +36,13 @@ export function HomePage() {
 
         <Hero />
 
-        <FadeContent>
-          <section
-            id="categorias"
-            aria-labelledby="categorias-titulo"
-            className="section-y scroll-mt-24"
-          >
+        <div className="font-sans">
+          <FadeContent>
+            <section
+              id="categorias"
+              aria-labelledby="categorias-titulo"
+              className="section-y scroll-mt-24"
+            >
             <div className="container">
               <h2
                 id="categorias-titulo"
@@ -71,12 +74,20 @@ export function HomePage() {
             className="section-y scroll-mt-24"
           >
             <div className="container">
-              <h2
-                id="produtos-titulo"
-                className="text-[28px] font-semibold leading-[1.1] tracking-[-0.02em] text-neutral-900 dark:text-white xl:text-[36px]"
-              >
-                Produtos em destaque
-              </h2>
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <h2
+                  id="produtos-titulo"
+                  className="text-[28px] font-semibold leading-[1.1] tracking-[-0.02em] text-neutral-900 dark:text-white xl:text-[36px]"
+                >
+                  Produtos em destaque
+                </h2>
+                <Link
+                  to="/catalogo"
+                  className="focus-ring inline-flex min-h-11 items-center rounded-button text-body font-medium text-sky-700 underline-offset-4 transition-colors hover:text-sky-800 hover:underline dark:text-sky-300 dark:hover:text-sky-200"
+                >
+                  Ver todos os produtos
+                </Link>
+              </div>
 
               {featuredProducts.length === 0 ? (
                 <div className="mt-6 rounded-card border border-dashed border-neutral-300 px-6 py-14 text-center dark:border-neutral-700">
@@ -93,7 +104,9 @@ export function HomePage() {
 
             {featuredProducts.length > 0 ? (
               <div className="mt-6">
-                {PRODUCTS_LAYOUT === 'carousel' ? (
+                {PRODUCTS_LAYOUT === 'showcase' ? (
+                  <FeaturedShowcase products={featuredProducts} />
+                ) : PRODUCTS_LAYOUT === 'carousel' ? (
                   <ProductCarousel products={featuredProducts} />
                 ) : (
                   <div className="container">
@@ -203,9 +216,12 @@ export function HomePage() {
             </section>
           </FadeContent>
         </div>
+        </div>
       </main>
 
-      <Footer />
+      <div className="font-sans">
+        <Footer />
+      </div>
     </>
   )
 }

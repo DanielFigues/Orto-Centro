@@ -52,9 +52,9 @@ export function CategoryCard({ category }: CategoryCardProps) {
         </h3>
 
         {visibleSubcategories.length > 0 ? (
-          <ul className="relative z-10 mt-4 flex flex-nowrap gap-x-4 overflow-hidden">
+          <ul className="relative z-10 mt-4 flex max-h-[24px] flex-wrap gap-x-4 overflow-hidden">
             {visibleSubcategories.map((subcategory) => (
-              <li key={subcategory.slug} className="min-w-0 shrink-0">
+              <li key={subcategory.slug} className="shrink-0">
                 <Link
                   to={categoryPathWithSubcategory(category, subcategory)}
                   className="focus-ring block whitespace-nowrap text-[16px] font-medium leading-[1.5] text-neutral-600 underline-offset-4 transition-colors hover:text-neutral-900 hover:underline dark:text-neutral-400 dark:hover:text-white"

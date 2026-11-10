@@ -12,5 +12,6 @@
   brand?: string
   sizes?: string
   price?: number | null
+  focalPoint?: string
   is_active: boolean
 }
