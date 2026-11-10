@@ -17,9 +17,9 @@ export function Hero() {
         className="absolute inset-x-0 bottom-0 z-0 h-3/4 bg-gradient-to-t from-black/90 via-black/45 to-transparent"
       />
 
-      <div className="relative z-10 flex flex-1 items-center justify-center px-[var(--page-gutter)] pb-10 pt-36 sm:pt-32 lg:pt-24">
+      <div className="container relative z-10 flex flex-1 items-center justify-center pb-10 pt-36 sm:pt-32 lg:pt-24">
         <div className="mx-auto flex w-full max-w-4xl flex-col items-center text-center">
-          <div className="flex gap-4 text-5xl font-black sm:text-6xl md:text-8xl">
+          <div className="flex gap-4 text-5xl font-black leading-[1.1] tracking-[-0.02em] sm:text-6xl md:text-8xl">
             <div className="text-blue-500">
               <SplitText
                 text="Orto"
@@ -44,7 +44,7 @@ export function Hero() {
             </div>
           </div>
 
-          <p className="mt-6 max-w-xl text-body font-medium uppercase tracking-widest text-white motion-safe:animate-hero-subtitle sm:mt-7 sm:text-body-lg">
+          <p className="mt-6 max-w-[60ch] text-body font-medium uppercase tracking-widest text-white motion-safe:animate-hero-subtitle sm:mt-7 sm:text-body-lg">
             Produtos de apoio e acessibilidade para o seu dia a dia
           </p>
         </div>

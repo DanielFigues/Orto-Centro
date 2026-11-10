@@ -81,7 +81,7 @@ export function Header() {
       }`}
     >
       <div className="border-b border-neutral-200/70 dark:border-neutral-800/70">
-        <div className="mx-auto flex h-16 items-center justify-between gap-4 px-4 sm:px-6">
+        <div className="container flex h-16 items-center justify-between gap-4">
           <Link to="/" className="flex shrink-0 items-center" aria-label="Orto Centro- Voltar ao início">
             <img
               src="/logo.png"
@@ -175,7 +175,7 @@ export function Header() {
           </div>
         </div>
 
-        <nav className="flex gap-1.5 overflow-x-auto px-4 pb-3 lg:hidden" aria-label="Navegação por seções">
+        <nav className="container flex gap-1.5 overflow-x-auto pb-3 lg:hidden" aria-label="Navegação por seções">
           {sectionLinks.map(({ id, label }) => {
             const className =
               'whitespace-nowrap rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition-colors hover:border-neutral-400 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800'

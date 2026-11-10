@@ -43,7 +43,7 @@ export function CategoryPage() {
   return (
     <div className="flex min-h-svh flex-col">
       <Header />
-      <main className="flex-1 px-4 pb-12 pt-36 sm:px-6 lg:pt-28">
+      <main className="container flex-1 pb-12 pt-36 lg:pt-28">
         {isLoading ? (
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
             Carregando produtos...
@@ -97,7 +97,7 @@ export function CategoryPage() {
             <div className="mt-4 border-b border-neutral-200 pb-3 dark:border-neutral-800">
               <h1
                 id="categoria-titulo"
-                className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white"
+                className="line-clamp-3 text-h2 font-semibold leading-[1.1] tracking-[-0.02em] text-neutral-900 dark:text-white md:line-clamp-2"
               >
                 {category}
               </h1>

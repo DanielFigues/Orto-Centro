@@ -191,7 +191,7 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
 
   if (isLoading) {
     return (
-      <p className="page-gutter py-16 text-center text-body text-neutral-600 dark:text-neutral-300">
+      <p className="container py-16 text-center text-body text-neutral-600 dark:text-neutral-300">
         Carregando produto...
       </p>
     )
@@ -244,7 +244,7 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
   const showMainImage = currentImage !== '' && !mainImageError
 
   return (
-    <div className="mx-auto w-full max-w-6xl">
+    <div className="container">
       <nav aria-label="Breadcrumb" className="text-label text-neutral-600 dark:text-neutral-300">
         <ol className="flex flex-wrap items-center gap-1.5">
           <li>
@@ -349,7 +349,7 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
               {product.category}
               {product.subcategory ? ` · ${product.subcategory}` : ''}
             </Link>
-            <h1 className="mt-2 text-h1 font-semibold leading-tight text-neutral-900 dark:text-white">
+            <h1 className="mt-2 line-clamp-3 text-h1 font-semibold leading-[1.1] tracking-[-0.02em] text-neutral-900 dark:text-white md:line-clamp-2">
               {product.name}
             </h1>
           </div>
@@ -381,7 +381,7 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
             <section aria-labelledby="especificacoes-titulo">
               <h2
                 id="especificacoes-titulo"
-                className="text-h3 font-semibold text-neutral-900 dark:text-white"
+                className="text-h3 font-semibold leading-[1.1] tracking-[-0.02em] text-neutral-900 dark:text-white"
               >
                 Especificações
               </h2>
@@ -409,7 +409,7 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
         <section aria-labelledby="descricao-titulo" className="mt-10 max-w-3xl">
           <h2
             id="descricao-titulo"
-            className="text-h3 font-semibold text-neutral-900 dark:text-white"
+            className="text-h3 font-semibold leading-[1.1] tracking-[-0.02em] text-neutral-900 dark:text-white"
           >
             Descrição
           </h2>
@@ -430,7 +430,7 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
         <section aria-labelledby="relacionados-titulo" className="mt-16 border-t border-neutral-200 pt-12 dark:border-neutral-800">
           <h2
             id="relacionados-titulo"
-            className="text-h2 font-semibold text-neutral-900 dark:text-white"
+            className="text-h2 font-semibold leading-[1.1] tracking-[-0.02em] text-neutral-900 dark:text-white"
           >
             Produtos relacionados
           </h2>

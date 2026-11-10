@@ -11,8 +11,7 @@ export function CatalogPage() {
     <div className="flex min-h-svh flex-col">
       <Header />
 
-      <main className="page-gutter flex-1 pb-16 pt-36 lg:pt-28">
-        <div className="content-container">
+      <main className="container flex-1 pb-16 pt-36 lg:pt-28">
           <nav
             aria-label="Breadcrumb"
             className="text-label text-neutral-600 dark:text-neutral-300"
@@ -33,10 +32,10 @@ export function CatalogPage() {
             </ol>
           </nav>
 
-          <h1 className="mt-4 text-section-title font-semibold tracking-tight text-neutral-900 dark:text-white">
+          <h1 className="mt-4 line-clamp-3 text-section-title font-semibold leading-[1.1] tracking-[-0.02em] text-neutral-900 dark:text-white md:line-clamp-2">
             Catálogo
           </h1>
-          <p className="mt-4 max-w-2xl text-body leading-relaxed text-neutral-600 dark:text-neutral-300">
+          <p className="mt-4 max-w-[60ch] text-body leading-relaxed text-neutral-600 dark:text-neutral-300">
             Explore todos os produtos de apoio e acessibilidade da Orto Centro.
             Use os filtros para encontrar a categoria que você precisa.
           </p>
@@ -64,7 +63,6 @@ export function CatalogPage() {
               <ProductGrid products={activeProducts} />
             )}
           </div>
-        </div>
       </main>
 
       <Footer />

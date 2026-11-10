@@ -34,8 +34,7 @@ export function HomePage() {
 
         <Hero />
 
-        <div className="page-gutter">
-          <div className="content-container">
+        <div className="container">
             <FadeContent>
               <section
                 id="categorias"
@@ -63,23 +62,21 @@ export function HomePage() {
                 aria-labelledby="produtos-titulo"
                 className="section-y scroll-mt-40"
               >
-                <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-                  <SectionHeading
-                    id="produtos-titulo"
-                    eyebrow="Destaques"
-                    title="Produtos em destaque"
-                    description="Uma seleção do catálogo para começar a explorar. Todos os itens têm informações detalhadas para você escolher com calma."
-                    className="md:max-w-2xl"
-                  />
-
-                  <Link
-                    to="/catalogo"
-                    className="focus-ring inline-flex min-h-11 shrink-0 items-center gap-2 self-start rounded-button text-body font-medium text-sky-700 transition-colors hover:text-sky-800 dark:text-sky-300 dark:hover:text-sky-200 md:self-auto"
-                  >
-                    Ver todos os produtos
-                    <Icon name="arrow-right" className="h-4 w-4" />
-                  </Link>
-                </div>
+                <SectionHeading
+                  id="produtos-titulo"
+                  eyebrow="Destaques"
+                  title="Produtos em destaque"
+                  description="Uma seleção do catálogo para começar a explorar. Todos os itens têm informações detalhadas para você escolher com calma."
+                  action={
+                    <Link
+                      to="/catalogo"
+                      className="focus-ring inline-flex min-h-11 shrink-0 items-center gap-2 rounded-button text-body font-medium text-sky-700 transition-colors hover:text-sky-800 dark:text-sky-300 dark:hover:text-sky-200"
+                    >
+                      Ver todos os produtos
+                      <Icon name="arrow-right" className="h-4 w-4" />
+                    </Link>
+                  }
+                />
 
                 {featuredProducts.length === 0 ? (
                   <div className="mt-10 rounded-card border border-dashed border-neutral-300 px-6 py-14 text-center dark:border-neutral-700">
@@ -199,7 +196,6 @@ export function HomePage() {
                 <LocationHours />
               </section>
             </FadeContent>
-          </div>
         </div>
       </main>
 

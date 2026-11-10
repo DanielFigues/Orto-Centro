@@ -103,9 +103,11 @@ Contrato mínimo de tokens (implementar/expandir em `src/index.css`):
   --color-focus: #0369a1;
 
   /* Layout */
-  --content-max: 80rem;
-  --page-gutter: clamp(1rem, 4vw, 2rem);
-  --section-y: clamp(80px, 12vw, 160px);
+  --container-max: 1760px;
+  --gutter: clamp(16px, 4.5vw, 86px);
+  --content-max: var(--container-max);
+  --page-gutter: var(--gutter);
+  --section-y: clamp(64px, 8vw, 120px);
 
   /* Raios */
   --radius-card: 1rem;
@@ -143,10 +145,18 @@ Utilitários de projeto recomendados:
 ```css
 .section-y {
   padding-block: var(--section-y);
+  margin-block: 0;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
 }
 
 .page-gutter {
-  padding-inline: var(--page-gutter);
+  padding-inline: var(--gutter);
 }
 
 .focus-ring:focus-visible {
@@ -173,11 +183,12 @@ Regras adicionais:
 
 ### 3.3 Espaçamento de seções
 
-- Toda seção de conteúdo usa **exatamente** `padding-block: clamp(80px, 12vw, 160px)`, via `--section-y` / `.section-y`.
+- Toda seção de conteúdo usa **exatamente** `padding-block: clamp(64px, 8vw, 120px)`, via `--section-y` / `.section-y`.
+- Seções usam apenas `padding-block`; não use `margin-block` entre seções. Remova espaçadores, `min-height` e lacunas vazias que criem respiro duplicado.
 - Não use `py-8`, `py-16`, `mt-24` etc. para o respiro vertical de uma seção. Use o token.
-- Header, hero e footer podem ter paddings próprios, mas também devem usar tokens (`--page-gutter`, `--duration-*`, etc.).
+- Header, hero e footer podem ter paddings próprios, mas também devem usar tokens (`--gutter`, `--duration-*`, etc.).
 - O ritmo vertical deve ser consistente entre home, categoria, produto e páginas futuras.
-- Em mobile (390px), o espaçamento de seção continua confortável; não reduza abaixo de 80px.
+- Em mobile (390px), o espaçamento de seção continua confortável; não reduza abaixo de 64px.
 
 ### 3.4 Cards: um único estilo de produto e um único de categoria
 
@@ -404,7 +415,7 @@ Depois de alterar:
 
 - [ ] Usei apenas as cores da marca como acento, sem blocos grandes de azul/verde.
 - [ ] Usei tokens para espaçamento, raios, tipografia, movimento e foco; não deixei valores soltos.
-- [ ] Seções usam `--section-y` (`clamp(80px, 12vw, 160px)`).
+- [ ] Seções usam `--section-y` (`clamp(64px, 8vw, 120px)`) apenas com `padding-block`, sem `margin-block` entre seções.
 - [ ] Existe um único estilo de card de produto e um único de categoria, reutilizados.
 - [ ] Usei no máximo `FadeContent` + `Carousel`; não usei `SplitText`, `BorderGlow`, `SpotlightCard`, `PixelCard` nem `SpecularButton`.
 - [ ] Contraste WCAG AA no claro e no escuro.

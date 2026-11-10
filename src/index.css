@@ -25,6 +25,8 @@
   --leading-body: 1.6;
   --leading-relaxed: 1.7;
 
+  --tracking-tight: -0.02em;
+
   --animate-fade-up: fade-up 0.7s ease-out both;
   --animate-fade-in: fade-in 0.6s ease-out both;
   --animate-hero-subtitle: fade-in 0.4s var(--ease-out) 0.3s both;
@@ -75,9 +77,11 @@
   --color-border: #e5e5e5;
   --color-focus: #0369a1;
 
-  --content-max: 80rem;
-  --page-gutter: clamp(1rem, 4vw, 2rem);
-  --section-y: clamp(80px, 12vw, 160px);
+  --container-max: 1760px;
+  --gutter: clamp(16px, 4.5vw, 86px);
+  --content-max: var(--container-max);
+  --page-gutter: var(--gutter);
+  --section-y: clamp(64px, 8vw, 120px);
   --aspect-product-card: 4 / 5;
 
   --duration-fast: 150ms;
@@ -123,15 +127,23 @@ body {
 
 .section-y {
   padding-block: var(--section-y);
+  margin-block: 0;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
 }
 
 .page-gutter {
-  padding-inline: var(--page-gutter);
+  padding-inline: var(--gutter);
 }
 
 .content-container {
   width: 100%;
-  max-width: var(--content-max);
+  max-width: var(--container-max);
   margin-inline: auto;
 }
 
