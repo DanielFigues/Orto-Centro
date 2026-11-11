@@ -90,8 +90,51 @@ function require_auth(): void
     }
 }
 
+function parse_price($raw, bool $required = false): ?float
+{
+    if ($raw === null) {
+        return null;
+    }
+
+    if (is_string($raw)) {
+        $raw = trim($raw);
+        if ($raw === '') {
+            return null;
+        }
+        $normalized = str_contains($raw, ',')
+            ? str_replace(['.', ','], ['', '.'], $raw)
+            : $raw;
+        if (!is_numeric($normalized)) {
+            fail(400, 'O preço deve ser um número válido maior que zero.');
+        }
+        $price = (float) $normalized;
+    } elseif (is_int($raw) || is_float($raw)) {
+        $price = (float) $raw;
+    } else {
+        fail(400, 'O preço deve ser um número válido maior que zero.');
+    }
+
+    if (!is_finite($price)) {
+        fail(400, 'O preço deve ser um número válido maior que zero.');
+    }
+    if ($price <= 0) {
+        fail(400, 'O preço deve ser maior que zero.');
+    }
+    if ($price > 9999999.99) {
+        fail(400, 'O preço deve ser menor que 9.999.999,99.');
+    }
+
+    return round($price, 2);
+}
+
 function product_row(array $row): array
 {
+    $price = null;
+    if (array_key_exists('price', $row) && $row['price'] !== null && $row['price'] !== '') {
+        $parsed = (float) $row['price'];
+        $price = is_finite($parsed) ? $parsed : null;
+    }
+
     return [
         'id' => (int) $row['id'],
         'name' => $row['name'],
@@ -100,11 +143,14 @@ function product_row(array $row): array
         'image_url' => $row['image_url'],
         'image_url_2' => (string) ($row['image_url_2'] ?? ''),
         'image_url_3' => (string) ($row['image_url_3'] ?? ''),
+        'image_url_4' => (string) ($row['image_url_4'] ?? ''),
+        'image_url_5' => (string) ($row['image_url_5'] ?? ''),
         'description' => (string) ($row['description'] ?? ''),
         'short_description' => (string) ($row['short_description'] ?? ''),
         'technical_specs' => (string) ($row['technical_specs'] ?? ''),
         'brand' => (string) ($row['brand'] ?? ''),
         'sizes' => (string) ($row['sizes'] ?? ''),
+        'price' => $price,
         'is_active' => (bool) $row['is_active'],
     ];
 }
@@ -249,6 +295,8 @@ if ($path === '/products' && $method === 'POST') {
     $imageUrl = process_image_field(isset($data['image_url']) ? (string) $data['image_url'] : '', 'image_url');
     $imageUrl2 = process_image_field(isset($data['image_url_2']) ? (string) $data['image_url_2'] : '', 'image_url_2');
     $imageUrl3 = process_image_field(isset($data['image_url_3']) ? (string) $data['image_url_3'] : '', 'image_url_3');
+    $imageUrl4 = process_image_field(isset($data['image_url_4']) ? (string) $data['image_url_4'] : '', 'image_url_4');
+    $imageUrl5 = process_image_field(isset($data['image_url_5']) ? (string) $data['image_url_5'] : '', 'image_url_5');
     $description = trim((string) ($data['description'] ?? ''));
     $shortDescription = trim((string) ($data['short_description'] ?? ''));
     $technicalSpecs = trim((string) ($data['technical_specs'] ?? ''));
@@ -260,6 +308,7 @@ if ($path === '/products' && $method === 'POST') {
     }
     $brand = trim((string) ($data['brand'] ?? ''));
     $sizes = trim((string) ($data['sizes'] ?? ''));
+    $price = array_key_exists('price', $data) ? parse_price($data['price']) : null;
 
     if ($name === '') {
         fail(400, 'O nome é obrigatório.');
@@ -270,8 +319,8 @@ if ($path === '/products' && $method === 'POST') {
     $isActive = isset($data['is_active']) ? (bool) $data['is_active'] : true;
 
     $stmt = $pdo->prepare(
-        'INSERT INTO products (name, category, subcategory, image_url, image_url_2, image_url_3, description, short_description, technical_specs, brand, sizes, is_active)
-         VALUES (:name, :category, :subcategory, :image_url, :image_url_2, :image_url_3, :description, :short_description, :technical_specs, :brand, :sizes, :is_active)'
+        'INSERT INTO products (name, category, subcategory, image_url, image_url_2, image_url_3, image_url_4, image_url_5, description, short_description, technical_specs, brand, sizes, price, is_active)
+         VALUES (:name, :category, :subcategory, :image_url, :image_url_2, :image_url_3, :image_url_4, :image_url_5, :description, :short_description, :technical_specs, :brand, :sizes, :price, :is_active)'
     );
     $stmt->execute([
         ':name' => $name,
@@ -280,11 +329,14 @@ if ($path === '/products' && $method === 'POST') {
         ':image_url' => $imageUrl,
         ':image_url_2' => $imageUrl2,
         ':image_url_3' => $imageUrl3,
+        ':image_url_4' => $imageUrl4,
+        ':image_url_5' => $imageUrl5,
         ':description' => $description,
         ':short_description' => $shortDescription,
         ':technical_specs' => $technicalSpecs,
         ':brand' => $brand,
         ':sizes' => $sizes,
+        ':price' => $price,
         ':is_active' => $isActive ? 1 : 0,
     ]);
 
@@ -312,13 +364,15 @@ if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'DELETE') 
             $existing['image_url'],
             $existing['image_url_2'],
             $existing['image_url_3'],
+            $existing['image_url_4'] ?? '',
+            $existing['image_url_5'] ?? '',
         ]);
 
         $stmt = $pdo->prepare('DELETE FROM products WHERE id = :id');
         $stmt->execute([':id' => $id]);
         respond(204, []);
     } catch (Throwable $e) {
-        fail(500, 'Internal server error');
+        fail(500, $e->getMessage() ?: 'Internal server error');
     }
 }
 
@@ -341,6 +395,8 @@ if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'PUT') {
         $imageUrl = array_key_exists('image_url', $data) ? process_image_field((string) $data['image_url'], 'image_url') : (string) ($existing['image_url'] ?? '');
         $imageUrl2 = array_key_exists('image_url_2', $data) ? process_image_field((string) $data['image_url_2'], 'image_url_2') : (string) ($existing['image_url_2'] ?? '');
         $imageUrl3 = array_key_exists('image_url_3', $data) ? process_image_field((string) $data['image_url_3'], 'image_url_3') : (string) ($existing['image_url_3'] ?? '');
+        $imageUrl4 = array_key_exists('image_url_4', $data) ? process_image_field((string) $data['image_url_4'], 'image_url_4') : (string) ($existing['image_url_4'] ?? '');
+        $imageUrl5 = array_key_exists('image_url_5', $data) ? process_image_field((string) $data['image_url_5'], 'image_url_5') : (string) ($existing['image_url_5'] ?? '');
         $description = array_key_exists('description', $data) ? trim((string) ($data['description'] ?? '')) : (string) ($existing['description'] ?? '');
         $shortDescription = array_key_exists('short_description', $data) ? trim((string) ($data['short_description'] ?? '')) : (string) ($existing['short_description'] ?? '');
         $technicalSpecs = array_key_exists('technical_specs', $data) ? trim((string) ($data['technical_specs'] ?? '')) : (string) ($existing['technical_specs'] ?? '');
@@ -352,6 +408,7 @@ if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'PUT') {
         }
         $brand = array_key_exists('brand', $data) ? trim((string) ($data['brand'] ?? '')) : (string) ($existing['brand'] ?? '');
         $sizes = array_key_exists('sizes', $data) ? trim((string) ($data['sizes'] ?? '')) : (string) ($existing['sizes'] ?? '');
+        $price = array_key_exists('price', $data) ? parse_price($data['price']) : (array_key_exists('price', $existing) ? parse_price($existing['price']) : null);
         $isActive = array_key_exists('is_active', $data) ? (bool) $data['is_active'] : (bool) $existing['is_active'];
 
         if ($name === '') {
@@ -365,13 +422,15 @@ if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'PUT') {
             (string) ($existing['image_url'] ?? ''),
             (string) ($existing['image_url_2'] ?? ''),
             (string) ($existing['image_url_3'] ?? ''),
+            (string) ($existing['image_url_4'] ?? ''),
+            (string) ($existing['image_url_5'] ?? ''),
         ];
 
         $update = $pdo->prepare(
             'UPDATE products SET name = :name, category = :category, subcategory = :subcategory,
-             image_url = :image_url, image_url_2 = :image_url_2, image_url_3 = :image_url_3,
+             image_url = :image_url, image_url_2 = :image_url_2, image_url_3 = :image_url_3, image_url_4 = :image_url_4, image_url_5 = :image_url_5,
              description = :description, short_description = :short_description,
-             technical_specs = :technical_specs, brand = :brand, sizes = :sizes, is_active = :is_active
+             technical_specs = :technical_specs, brand = :brand, sizes = :sizes, price = :price, is_active = :is_active
              WHERE id = :id'
         );
         $update->execute([
@@ -381,17 +440,20 @@ if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'PUT') {
             ':image_url' => $imageUrl,
             ':image_url_2' => $imageUrl2,
             ':image_url_3' => $imageUrl3,
+            ':image_url_4' => $imageUrl4,
+            ':image_url_5' => $imageUrl5,
             ':description' => $description,
             ':short_description' => $shortDescription,
             ':technical_specs' => $technicalSpecs,
             ':brand' => $brand,
             ':sizes' => $sizes,
+            ':price' => $price,
             ':is_active' => $isActive ? 1 : 0,
             ':id' => $id,
         ]);
 
         // Remove do disco os arquivos locais que foram substituídos ou removidos.
-        $currentUrls = [$imageUrl, $imageUrl2, $imageUrl3];
+        $currentUrls = [$imageUrl, $imageUrl2, $imageUrl3, $imageUrl4, $imageUrl5];
         foreach ($previousUrls as $oldUrl) {
             $stillInUse = in_array($oldUrl, $currentUrls, true);
             if ($oldUrl !== '' && !$stillInUse) {
@@ -402,7 +464,7 @@ if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'PUT') {
         $row = $pdo->query('SELECT * FROM products WHERE id = ' . $id)->fetch();
         respond(200, ['product' => product_row($row)]);
     } catch (Throwable $e) {
-        fail(500, 'Internal server error');
+        fail(500, $e->getMessage() ?: 'Internal server error');
     }
 }
 

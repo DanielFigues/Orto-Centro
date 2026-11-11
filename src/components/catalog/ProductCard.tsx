@@ -1,24 +1,17 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Product } from '../../types/product'
+import { formatPrice } from '../../lib/formatPrice'
 import { Icon } from '../ui/Icon'
 
 interface ProductCardProps {
   product: Product
 }
 
-const currency = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL',
-})
-
 export function ProductCard({ product }: ProductCardProps) {
   const [hasImageError, setHasImageError] = useState(false)
   const showImage = product.image_url !== '' && !hasImageError
-  const hasPrice =
-    typeof product.price === 'number' &&
-    Number.isFinite(product.price) &&
-    product.price > 0
+  const formattedPrice = formatPrice(product.price)
 
   return (
     <Link
@@ -55,9 +48,9 @@ export function ProductCard({ product }: ProductCardProps) {
           {product.category}
         </p>
 
-        {hasPrice ? (
-          <p className="mt-auto pt-2 text-[17px] font-medium text-neutral-900 dark:text-white">
-            {currency.format(product.price as number)}
+        {formattedPrice ? (
+          <p className="mt-auto pt-2 text-[17px] font-semibold text-neutral-900 dark:text-white">
+            {formattedPrice}
           </p>
         ) : null}
       </div>

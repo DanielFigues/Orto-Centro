@@ -15,11 +15,14 @@ function migrate(PDO $pdo): void
             image_url TEXT NOT NULL DEFAULT \'\',
             image_url_2 TEXT DEFAULT \'\',
             image_url_3 TEXT DEFAULT \'\',
+            image_url_4 TEXT DEFAULT \'\',
+            image_url_5 TEXT DEFAULT \'\',
             description TEXT DEFAULT \'\',
             short_description TEXT DEFAULT \'\',
             technical_specs TEXT DEFAULT \'\',
             brand TEXT DEFAULT \'\',
             sizes TEXT DEFAULT \'\',
+            price DECIMAL(10,2) NULL DEFAULT NULL,
             is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1))
         );'
     );
@@ -48,6 +51,15 @@ function migrate(PDO $pdo): void
     }
     if (!in_array('image_url_3', $columns, true)) {
         $pdo->exec("ALTER TABLE products ADD COLUMN image_url_3 TEXT DEFAULT ''");
+    }
+    if (!in_array('image_url_4', $columns, true)) {
+        $pdo->exec("ALTER TABLE products ADD COLUMN image_url_4 TEXT DEFAULT ''");
+    }
+    if (!in_array('image_url_5', $columns, true)) {
+        $pdo->exec("ALTER TABLE products ADD COLUMN image_url_5 TEXT DEFAULT ''");
+    }
+    if (!in_array('price', $columns, true)) {
+        $pdo->exec('ALTER TABLE products ADD COLUMN price DECIMAL(10,2) NULL DEFAULT NULL');
     }
 }
 

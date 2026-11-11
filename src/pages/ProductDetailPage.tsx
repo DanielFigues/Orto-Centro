@@ -5,6 +5,7 @@ import { ProductCard } from '../components/catalog/ProductCard'
 import { Icon } from '../components/ui/Icon'
 import { useCatalog } from '../context/catalogContextValue'
 import { categoryPath, getCategoryByName } from '../data/categories'
+import { formatPrice } from '../lib/formatPrice'
 
 interface ProductDetailPageProps {
   productId: number
@@ -163,9 +164,13 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
 
   const galleryImages = useMemo(() => {
     if (!product) return []
-    return [product.image_url, product.image_url_2, product.image_url_3].filter(
-      (img): img is string => typeof img === 'string' && img.trim() !== '',
-    )
+    return [
+      product.image_url,
+      product.image_url_2,
+      product.image_url_3,
+      product.image_url_4,
+      product.image_url_5,
+    ].filter((img): img is string => typeof img === 'string' && img.trim() !== '')
   }, [product])
 
   const currentImage =
@@ -351,9 +356,9 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
             </p>
           ) : null}
 
-          {typeof product.price === 'number' && Number.isFinite(product.price) && product.price > 0 ? (
-            <p className="text-h3 font-semibold text-neutral-900 dark:text-white">
-              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.price)}
+          {formatPrice(product.price) ? (
+            <p className="text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-neutral-900 dark:text-white">
+              {formatPrice(product.price)}
             </p>
           ) : null}
 

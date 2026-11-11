@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Product } from '../../types/product'
+import { formatPrice } from '../../lib/formatPrice'
 import { Icon } from '../ui/Icon'
 
 const DURATION = 7000
@@ -11,11 +12,6 @@ interface FeaturedShowcaseProps {
   products: Product[]
   ariaLabel?: string
 }
-
-const currency = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL',
-})
 
 function displayName(name: string): string {
   return name.replace(/Todo-Terreno/g, 'Todo\u2011Terreno')
@@ -293,10 +289,7 @@ export function FeaturedShowcase({
           const slideId = `${instanceId}-slide-${product.id}`
           const labelId = `${instanceId}-label-${product.id}`
           const inertProps = !isActive ? ({ inert: '' } as Record<string, string>) : {}
-          const hasPrice =
-            typeof product.price === 'number' &&
-            Number.isFinite(product.price) &&
-            product.price > 0
+          const formattedPrice = formatPrice(product.price)
           const focalPoint = getFocalPoint(product)
 
           return (
@@ -327,9 +320,9 @@ export function FeaturedShowcase({
                     {description}
                   </p>
                 ) : null}
-                {hasPrice ? (
-                  <p className="text-body font-medium text-neutral-700 dark:text-neutral-200">
-                    {currency.format(product.price as number)}
+                {formattedPrice ? (
+                  <p className="text-[22px] font-semibold text-neutral-900 dark:text-white">
+                    {formattedPrice}
                   </p>
                 ) : null}
                 <div className="flex flex-wrap items-center gap-3 pt-1">

@@ -21,6 +21,11 @@ interface TechnicalSpec {
   value: string
 }
 
+interface ImageSlot {
+  url: string
+  file: File | null
+}
+
 interface FormState {
   name: string
   category: string
@@ -32,14 +37,18 @@ interface FormState {
   sizes: string[]
   shortDescription: string
   description: string
-  imageUrl: string
-  imageFile1: File | null
-  imageUrl2: string
-  imageFile2: File | null
-  imageUrl3: string
-  imageFile3: File | null
+  imageSlots: ImageSlot[]
+  showPrice: boolean
+  priceInput: string
   specs: TechnicalSpec[]
   isActive: boolean
+}
+
+const MAX_IMAGE_SLOTS = 5
+const MAX_EXTRA_IMAGE_SLOTS = 2
+
+function createEmptyImageSlot(): ImageSlot {
+  return { url: '', file: null }
 }
 
 const EMPTY_FORM: FormState = {
@@ -53,36 +62,81 @@ const EMPTY_FORM: FormState = {
   sizes: [],
   shortDescription: '',
   description: '',
-  imageUrl: '',
-  imageFile1: null,
-  imageUrl2: '',
-  imageFile2: null,
-  imageUrl3: '',
-  imageFile3: null,
+  imageSlots: [createEmptyImageSlot()],
+  showPrice: false,
+  priceInput: '',
   specs: [],
   isActive: true,
 }
 
 const PREDEFINED_SIZES = ['Único', 'PP', 'P', 'M', 'G', 'GG', 'XG']
 
-type ImageFieldKey = 'imageUrl' | 'imageUrl2' | 'imageUrl3'
-
-const IMAGE_FILE_FIELDS: Record<ImageFieldKey, 'imageFile1' | 'imageFile2' | 'imageFile3'> = {
-  imageUrl: 'imageFile1',
-  imageUrl2: 'imageFile2',
-  imageUrl3: 'imageFile3',
+function formatPriceInput(value: number): string {
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value)
 }
 
-const IMAGE_LABELS: Record<ImageFieldKey, string> = {
-  imageUrl: 'Imagem 1',
-  imageUrl2: 'Imagem 2',
-  imageUrl3: 'Imagem 3',
+function parsePriceInput(raw: string): number | null {
+  const trimmed = raw.trim()
+  if (trimmed === '') return null
+
+  const normalized = trimmed
+    .replace(/\s/g, '')
+    .replace(/\./g, '')
+    .replace(',', '.')
+
+  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) {
+    return null
+  }
+
+  const parsed = Number(normalized)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+function getPriceFieldError(showPrice: boolean, priceInput: string): string | null {
+  if (!showPrice) return null
+
+  const trimmed = priceInput.trim()
+  if (trimmed === '') {
+    return 'Informe um preço válido maior que zero ou remova o preço.'
+  }
+
+  const parsed = parsePriceInput(trimmed)
+  if (parsed === null || parsed <= 0) {
+    return 'Informe um preço válido maior que zero.'
+  }
+  if (parsed > 9999999.99) {
+    return 'O preço deve ser menor que 9.999.999,99.'
+  }
+
+  return null
+}
+
+function buildInitialImageSlots(product: Product | null | undefined): ImageSlot[] {
+  if (!product) return [createEmptyImageSlot()]
+
+  const urls = [
+    product.image_url,
+    product.image_url_2,
+    product.image_url_3,
+    product.image_url_4,
+    product.image_url_5,
+  ]
+    .map((url) => (typeof url === 'string' ? url.trim() : ''))
+    .filter((url) => url !== '')
+
+  if (urls.length === 0) return [createEmptyImageSlot()]
+  return urls.map((url) => ({ url, file: null }))
 }
 
 function buildInitialForm(product: Product | null | undefined): FormState {
   if (!product) {
     return EMPTY_FORM
   }
+
+  const hasPrice = typeof product.price === 'number' && Number.isFinite(product.price) && product.price > 0
 
   return {
     name: product.name || '',
@@ -95,12 +149,9 @@ function buildInitialForm(product: Product | null | undefined): FormState {
     sizes: parseSizes(product.sizes),
     shortDescription: product.short_description || '',
     description: product.description || '',
-    imageUrl: product.image_url || '',
-    imageFile1: null,
-    imageUrl2: product.image_url_2 || '',
-    imageFile2: null,
-    imageUrl3: product.image_url_3 || '',
-    imageFile3: null,
+    imageSlots: buildInitialImageSlots(product),
+    showPrice: hasPrice,
+    priceInput: hasPrice ? formatPriceInput(product.price as number) : '',
     specs: parseSpecs(product.technical_specs),
     isActive: product.is_active,
   }
@@ -153,8 +204,19 @@ function parseSpecs(raw: string | undefined): TechnicalSpec[] {
   }
 }
 
-function useObjectUrl(file: File | null, url: string): string {
-  const objectUrl = useMemo(() => (file ? URL.createObjectURL(file) : ''), [file])
+interface ImageFieldProps {
+  label: string
+  slot: ImageSlot
+  onUrlChange: (value: string) => void
+  onFileChange: (file: File) => void
+  onRemove: () => void
+}
+
+function ImageField({ label, slot, onUrlChange, onFileChange, onRemove }: ImageFieldProps) {
+  const objectUrl = useMemo(
+    () => (slot.file ? URL.createObjectURL(slot.file) : ''),
+    [slot.file],
+  )
 
   useEffect(() => {
     return () => {
@@ -162,34 +224,20 @@ function useObjectUrl(file: File | null, url: string): string {
     }
   }, [objectUrl])
 
-  if (file) return objectUrl
-  return url.trim()
-}
+  const preview = slot.file ? objectUrl : slot.url.trim()
 
-interface ImageFieldProps {
-  label: string
-  preview: string
-  url: string
-  onUrlChange: (value: string) => void
-  onFileChange: (file: File) => void
-  onRemove: () => void
-}
-
-function ImageField({ label, preview, url, onUrlChange, onFileChange, onRemove }: ImageFieldProps) {
   return (
     <div className="space-y-2">
       <div className="flex min-h-7 items-center justify-between gap-2">
         <span className={LABEL_CLASS}>{label}</span>
-        {preview !== '' && (
-          <button
-            type="button"
-            onClick={onRemove}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-red-700"
-          >
-            <Icon name="trash" className="h-3.5 w-3.5" />
-            Remover
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={onRemove}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-red-700"
+        >
+          <Icon name="trash" className="h-3.5 w-3.5" />
+          Remover
+        </button>
       </div>
 
       <div className="flex h-40 items-center justify-center overflow-hidden rounded-xl border border-dashed border-slate-300 bg-slate-50">
@@ -209,15 +257,20 @@ function ImageField({ label, preview, url, onUrlChange, onFileChange, onRemove }
       <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50">
         <Icon name="tools" className="h-4 w-4 text-slate-400" />
         Selecionar arquivo
-        <input type="file" accept="image/*" hidden onChange={(e) => {
-          const file = e.target.files?.[0]
-          if (file) onFileChange(file)
-        }} />
+        <input
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) onFileChange(file)
+          }}
+        />
       </label>
 
       <input
         type="text"
-        value={url}
+        value={slot.url}
         onChange={(e) => onUrlChange(e.target.value)}
         placeholder="https://..."
         aria-label={`URL de ${label}`}
@@ -238,7 +291,8 @@ export function ProductForm({
   const [form, setForm] = useState<FormState>(() => buildInitialForm(product))
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [pendingImage, setPendingImage] = useState<ImageFieldKey | null>(null)
+  const [priceError, setPriceError] = useState<string | null>(null)
+  const [pendingImageIndex, setPendingImageIndex] = useState<number | null>(null)
   const [pendingSpecIndex, setPendingSpecIndex] = useState<number | null>(null)
 
   const categories = useMemo(
@@ -272,10 +326,6 @@ export function ProductForm({
     return [...PREDEFINED_SIZES, ...extras]
   }, [form.sizes])
 
-  const image1Preview = useObjectUrl(form.imageFile1, form.imageUrl)
-  const image2Preview = useObjectUrl(form.imageFile2, form.imageUrl2)
-  const image3Preview = useObjectUrl(form.imageFile3, form.imageUrl3)
-
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }))
   }
@@ -307,14 +357,40 @@ export function ProductForm({
     }))
   }
 
-  function removeImage(field: 'imageUrl' | 'imageUrl2' | 'imageUrl3', fileField: 'imageFile1' | 'imageFile2' | 'imageFile3') {
-    setForm((prev) => ({ ...prev, [field]: '', [fileField]: null }))
+  function updateImageSlot(index: number, patch: Partial<ImageSlot>) {
+    setForm((prev) => ({
+      ...prev,
+      imageSlots: prev.imageSlots.map((slot, i) =>
+        i === index ? { ...slot, ...patch } : slot,
+      ),
+    }))
   }
 
   function confirmRemoveImage() {
-    if (!pendingImage) return
-    removeImage(pendingImage, IMAGE_FILE_FIELDS[pendingImage])
-    setPendingImage(null)
+    if (pendingImageIndex === null) return
+    setForm((prev) => {
+      const nextSlots = prev.imageSlots.filter((_, i) => i !== pendingImageIndex)
+      return {
+        ...prev,
+        imageSlots: nextSlots.length > 0 ? nextSlots : [createEmptyImageSlot()],
+      }
+    })
+    setPendingImageIndex(null)
+  }
+
+  const activeImageCount = form.imageSlots.filter(
+    (slot) => slot.file !== null || slot.url.trim() !== '',
+  ).length
+  const canAddImageSlot =
+    form.imageSlots.length < MAX_IMAGE_SLOTS &&
+    form.imageSlots.length < activeImageCount + MAX_EXTRA_IMAGE_SLOTS
+
+  function addImageSlot() {
+    if (!canAddImageSlot) return
+    setForm((prev) => ({
+      ...prev,
+      imageSlots: [...prev.imageSlots, createEmptyImageSlot()],
+    }))
   }
 
   const pendingSpec = pendingSpecIndex !== null ? form.specs[pendingSpecIndex] ?? null : null
@@ -328,6 +404,12 @@ export function ProductForm({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
+    const nextPriceError = getPriceFieldError(form.showPrice, form.priceInput)
+    if (nextPriceError) {
+      setPriceError(nextPriceError)
+      return
+    }
+
     const category = form.category === 'Adicionar nova...' ? form.categoryCustom.trim() : form.category.trim()
     const subcategory = form.subcategory === 'Adicionar nova...' ? form.subcategoryCustom.trim() : form.subcategory.trim()
     const brand = form.brand === 'Adicionar nova...' ? form.brandCustom.trim() : form.brand.trim()
@@ -336,6 +418,9 @@ export function ProductForm({
       .filter((spec) => spec.property.trim() !== '')
       .map((spec) => ({ property: spec.property.trim(), value: spec.value.trim() }))
 
+    const parsedPrice = form.showPrice ? parsePriceInput(form.priceInput) : null
+    const imageValues = form.imageSlots.map((slot) => slot.file ?? slot.url.trim())
+
     const input: ProductInput = {
       name: form.name.trim(),
       category,
@@ -343,23 +428,21 @@ export function ProductForm({
       description: form.description,
       technical_specs: JSON.stringify(specs),
       sizes: form.sizes.join(','),
+      price: parsedPrice,
       is_active: form.isActive,
+      image_url: imageValues[0] ?? '',
+      image_url_2: imageValues[1] ?? '',
+      image_url_3: imageValues[2] ?? '',
+      image_url_4: imageValues[3] ?? '',
+      image_url_5: imageValues[4] ?? '',
     }
 
     if (subcategory !== '') input.subcategory = subcategory
     if (brand !== '') input.brand = brand
 
-    if (form.imageFile1) input.image_url = form.imageFile1
-    else if (form.imageUrl.trim() !== '') input.image_url = form.imageUrl.trim()
-
-    if (form.imageFile2) input.image_url_2 = form.imageFile2
-    else if (form.imageUrl2.trim() !== '') input.image_url_2 = form.imageUrl2.trim()
-
-    if (form.imageFile3) input.image_url_3 = form.imageFile3
-    else if (form.imageUrl3.trim() !== '') input.image_url_3 = form.imageUrl3.trim()
-
     setSubmitting(true)
     setErrorMessage(null)
+    setPriceError(null)
     try {
       await onSubmit(input)
       if (!product) {
@@ -543,32 +626,107 @@ export function ProductForm({
       </div>
 
       <div className="flex flex-col gap-3">
-        <h3 className={SECTION_TITLE_CLASS}>Imagens do Produto</h3>
+        <div className="flex items-center justify-between gap-3">
+          <h3 className={SECTION_TITLE_CLASS}>Imagens do Produto</h3>
+          {canAddImageSlot ? (
+            <button
+              type="button"
+              onClick={addImageSlot}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-cyan-600 px-3 py-2 text-sm font-semibold text-cyan-700 transition-colors hover:bg-cyan-50"
+            >
+              <Icon name="plus" className="h-4 w-4" />
+              Adicionar imagem
+            </button>
+          ) : null}
+        </div>
         <div className="grid gap-5 md:grid-cols-3">
-          <ImageField
-            label="Imagem 1"
-            preview={image1Preview}
-            url={form.imageUrl}
-            onUrlChange={(value) => update('imageUrl', value)}
-            onFileChange={(file) => update('imageFile1', file)}
-            onRemove={() => setPendingImage('imageUrl')}
-          />
-          <ImageField
-            label="Imagem 2 (opcional)"
-            preview={image2Preview}
-            url={form.imageUrl2}
-            onUrlChange={(value) => update('imageUrl2', value)}
-            onFileChange={(file) => update('imageFile2', file)}
-            onRemove={() => setPendingImage('imageUrl2')}
-          />
-          <ImageField
-            label="Imagem 3 (opcional)"
-            preview={image3Preview}
-            url={form.imageUrl3}
-            onUrlChange={(value) => update('imageUrl3', value)}
-            onFileChange={(file) => update('imageFile3', file)}
-            onRemove={() => setPendingImage('imageUrl3')}
-          />
+          {form.imageSlots.map((slot, index) => (
+            <ImageField
+              key={index}
+              label={`Imagem ${index + 1}${index === 0 ? '' : ' (opcional)'}`}
+              slot={slot}
+              onUrlChange={(value) => updateImageSlot(index, { url: value })}
+              onFileChange={(file) => updateImageSlot(index, { file })}
+              onRemove={() => setPendingImageIndex(index)}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <h3 className={SECTION_TITLE_CLASS}>Preço (Opcional)</h3>
+        <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-slate-500">
+              Deixe sem preço se o valor for consultado diretamente com a loja.
+            </p>
+            {!form.showPrice ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setPriceError(null)
+                  setForm((prev) => ({ ...prev, showPrice: true }))
+                }}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-cyan-600 px-3 py-2 text-sm font-semibold text-cyan-700 transition-colors hover:bg-cyan-50"
+              >
+                <Icon name="plus" className="h-4 w-4" />
+                Adicionar preço
+              </button>
+            ) : null}
+          </div>
+
+          {form.showPrice ? (
+            <div className="mt-3">
+              <div className="flex items-center gap-3">
+                <div className="flex w-full max-w-xs items-center overflow-hidden rounded-xl border border-slate-300 bg-white focus-within:border-cyan-500 focus-within:ring-2 focus-within:ring-cyan-500/30">
+                  <span className="px-3 text-sm font-semibold text-slate-500">R$</span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    aria-label="Preço em reais"
+                    value={form.priceInput}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      setForm((prev) => ({ ...prev, priceInput: value }))
+                      if (priceError) setPriceError(null)
+                    }}
+                    onBlur={() => {
+                      const parsed = parsePriceInput(form.priceInput)
+                      if (parsed !== null && parsed > 0 && parsed <= 9999999.99) {
+                        setForm((prev) => ({
+                          ...prev,
+                          priceInput: formatPriceInput(parsed),
+                        }))
+                        setPriceError(null)
+                        return
+                      }
+                      if (form.priceInput.trim() !== '') {
+                        setPriceError(getPriceFieldError(true, form.priceInput))
+                      }
+                    }}
+                    placeholder="0,00"
+                    className="w-full bg-transparent px-1 py-3 pr-4 text-base text-slate-900 outline-none placeholder:text-slate-400"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPriceError(null)
+                    setForm((prev) => ({ ...prev, showPrice: false, priceInput: '' }))
+                  }}
+                  aria-label="Remover preço"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-red-600 px-3 py-3 text-white shadow-sm transition-colors hover:bg-red-700"
+                >
+                  <Icon name="trash" className="h-4 w-4" />
+                </button>
+              </div>
+              {priceError ? (
+                <p className="mt-2 text-sm font-medium text-red-600" role="alert">
+                  {priceError}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -666,20 +824,22 @@ export function ProductForm({
       </div>
 
       <ConfirmDialog
-        isOpen={pendingImage !== null}
+        isOpen={pendingImageIndex !== null}
         title="Remover imagem"
         message={
           <>
             Tem certeza que deseja remover a{' '}
             <strong className="font-semibold">
-              {pendingImage ? IMAGE_LABELS[pendingImage].toLowerCase() : 'imagem'}
+              {pendingImageIndex !== null
+                ? `imagem ${pendingImageIndex + 1}`
+                : 'imagem'}
             </strong>
-            ? A imagem atual será descartada.
+            ? As imagens seguintes serão reorganizadas.
           </>
         }
         confirmLabel="Remover"
         onConfirm={confirmRemoveImage}
-        onCancel={() => setPendingImage(null)}
+        onCancel={() => setPendingImageIndex(null)}
       />
 
       <ConfirmDialog

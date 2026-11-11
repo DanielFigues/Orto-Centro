@@ -5,6 +5,7 @@ import type { KeyboardEvent, RefObject } from 'react'
 import { useCatalog } from '../../context/catalogContextValue'
 import { categories, categoryPath } from '../../data/categories'
 import { searchSuggestionTerms } from '../../data/search'
+import { formatPrice } from '../../lib/formatPrice'
 import type { Product } from '../../types/product'
 import { Icon } from '../ui/Icon'
 
@@ -73,6 +74,7 @@ function SearchResultOption({
 }: SearchResultOptionProps) {
   const [hasImageError, setHasImageError] = useState(false)
   const showImage = product.image_url !== '' && !hasImageError
+  const formattedPrice = formatPrice(product.price)
 
   return (
     <li
@@ -114,6 +116,11 @@ function SearchResultOption({
           {product.category}
           {product.subcategory !== '' ? ` · ${product.subcategory}` : ''}
         </span>
+        {formattedPrice ? (
+          <span className="mt-0.5 block text-body font-semibold text-neutral-900 dark:text-white">
+            {formattedPrice}
+          </span>
+        ) : null}
       </span>
 
       {isActive && (
