@@ -149,12 +149,13 @@ function ImageZoomDialog({
   )
 }
 
+type GalleryMedia =
+  | { type: 'image'; url: string }
+  | { type: 'video'; url: string }
+
 export function ProductDetailPage({ productId }: ProductDetailPageProps) {
   const { activeProducts, isLoading, errorMessage, retry } = useCatalog()
-  const [selectedImage, setSelectedImage] = useState<{
-    productId: number
-    image: string
-  } | null>(null)
+  const [selectedMediaUrl, setSelectedMediaUrl] = useState<string | null>(null)
   const [zoomImage, setZoomImage] = useState<string | null>(null)
   const [mainImageError, setMainImageError] = useState(false)
 
@@ -163,21 +164,30 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
     [activeProducts, productId],
   )
 
-  const galleryImages = useMemo(() => {
+  const galleryMedia = useMemo<GalleryMedia[]>(() => {
     if (!product) return []
-    return [
+    const images = [
       product.image_url,
       product.image_url_2,
       product.image_url_3,
       product.image_url_4,
       product.image_url_5,
-    ].filter((img): img is string => typeof img === 'string' && img.trim() !== '')
+    ]
+      .filter((img): img is string => typeof img === 'string' && img.trim() !== '')
+      .map((url) => ({ type: 'image' as const, url }))
+    const videos = [product.video_url, product.video_url_2, product.video_url_3]
+      .filter((vid): vid is string => typeof vid === 'string' && vid.trim() !== '')
+      .map((url) => ({ type: 'video' as const, url }))
+    return [...images, ...videos]
   }, [product])
 
-  const currentImage =
-    selectedImage && selectedImage.productId === productId
-      ? selectedImage.image
-      : galleryImages[0] ?? ''
+  const currentMedia = useMemo(() => {
+    if (galleryMedia.length === 0) return null
+    if (selectedMediaUrl) {
+      return galleryMedia.find((item) => item.url === selectedMediaUrl) ?? galleryMedia[0]
+    }
+    return galleryMedia[0]
+  }, [galleryMedia, selectedMediaUrl])
 
   const technicalSpecs = useMemo(
     () => parseSpecs(product?.technical_specs),
@@ -238,7 +248,9 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
     )
   }
 
-  const showMainImage = currentImage !== '' && !mainImageError
+  const showMainImage =
+    currentMedia?.type === 'image' && currentMedia.url !== '' && !mainImageError
+  const showMainVideo = currentMedia?.type === 'video' && currentMedia.url !== ''
 
   return (
     <div className="container">
@@ -268,15 +280,25 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
       <div className="mt-6 grid min-w-0 gap-8 lg:grid-cols-2 lg:gap-10">
         <div className="min-w-0 max-w-full space-y-4">
           <div className="relative aspect-square w-full max-w-full overflow-hidden rounded-card-lg border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-800">
-            {showMainImage ? (
+            {showMainVideo ? (
+              <video
+                key={currentMedia.url}
+                src={currentMedia.url}
+                controls
+                preload="metadata"
+                playsInline
+                className="h-full w-full bg-black object-contain"
+                aria-label={`Vídeo de ${product.name}`}
+              />
+            ) : showMainImage ? (
               <button
                 type="button"
-                onClick={() => setZoomImage(currentImage)}
+                onClick={() => setZoomImage(currentMedia!.url)}
                 className="focus-ring group block h-full w-full"
                 aria-label={`Ampliar imagem de ${product.name}`}
               >
                 <img
-                  src={currentImage}
+                  src={currentMedia!.url}
                   alt={product.name}
                   width={1000}
                   height={1000}
@@ -296,40 +318,62 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
             )}
           </div>
 
-          {galleryImages.length > 1 && (
+          {galleryMedia.length > 1 && (
             <div
               className="flex gap-2 overflow-x-auto pb-1"
               role="group"
-              aria-label="Imagens do produto"
+              aria-label="Imagens e vídeos do produto"
             >
-              {galleryImages.map((img) => {
-                const isSelected = currentImage === img
+              {galleryMedia.map((media) => {
+                const isSelected = currentMedia?.url === media.url
                 return (
                   <button
-                    key={img}
+                    key={media.url}
                     type="button"
                     onClick={() => {
-                      setSelectedImage({ productId, image: img })
+                      setSelectedMediaUrl(media.url)
                       setMainImageError(false)
                     }}
                     aria-pressed={isSelected}
-                    aria-label={`Ver imagem de ${product.name}`}
-                    className={`focus-ring h-20 w-20 flex-shrink-0 overflow-hidden rounded-button border-2 transition-colors ${
+                    aria-label={
+                      media.type === 'video'
+                        ? `Ver vídeo de ${product.name}`
+                        : `Ver imagem de ${product.name}`
+                    }
+                    className={`focus-ring relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-button border-2 transition-colors ${
                       isSelected
                         ? 'border-sky-600 dark:border-sky-400'
                         : 'border-neutral-200 hover:border-neutral-400 dark:border-neutral-700 dark:hover:border-neutral-500'
                     }`}
                   >
-                    <img
-                      src={img}
-                      alt=""
-                      aria-hidden="true"
-                      width={80}
-                      height={80}
-                      loading="lazy"
-                      decoding="async"
-                      className="h-full w-full object-cover"
-                    />
+                    {media.type === 'video' ? (
+                      <>
+                        <video
+                          src={media.url}
+                          preload="metadata"
+                          muted
+                          playsInline
+                          className="h-full w-full object-cover"
+                          aria-hidden="true"
+                        />
+                        <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20">
+                          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white">
+                            <Icon name="play" className="h-4 w-4" />
+                          </span>
+                        </span>
+                      </>
+                    ) : (
+                      <img
+                        src={media.url}
+                        alt=""
+                        aria-hidden="true"
+                        width={80}
+                        height={80}
+                        loading="lazy"
+                        decoding="async"
+                        className="h-full w-full object-cover"
+                      />
+                    )}
                   </button>
                 )
               })}

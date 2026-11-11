@@ -21,6 +21,9 @@ export interface ProductInput {
   image_url_3?: string | File
   image_url_4?: string | File
   image_url_5?: string | File
+  video_url?: string
+  video_url_2?: string
+  video_url_3?: string
   description?: string
   short_description?: string
   technical_specs?: string
@@ -73,6 +76,9 @@ function parseProduct(value: unknown): Product | null {
     image_url_3: toText(value.image_url_3),
     image_url_4: toText(value.image_url_4),
     image_url_5: toText(value.image_url_5),
+    video_url: toText(value.video_url),
+    video_url_2: toText(value.video_url_2),
+    video_url_3: toText(value.video_url_3),
     description: toText(value.description),
     short_description: toText(value.short_description),
     technical_specs: toText(value.technical_specs),
@@ -273,4 +279,74 @@ export async function updateProduct(
   }
 
   return product
+}
+
+const MAX_VIDEO_BYTES = 100 * 1024 * 1024
+const ALLOWED_VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov', 'm4v']
+
+/**
+ * Validação local do arquivo de vídeo (formato e tamanho), compartilhada
+ * entre o formulário do admin e o próprio envio.
+ */
+export function validateVideoFile(file: File): string | null {
+  const extension = file.name.includes('.')
+    ? (file.name.split('.').pop()?.toLowerCase() ?? '')
+    : ''
+  if (!ALLOWED_VIDEO_EXTENSIONS.includes(extension)) {
+    return 'Formato de vídeo não suportado. Use MP4, WebM ou MOV.'
+  }
+  if (file.size > MAX_VIDEO_BYTES) {
+    return 'O vídeo excede o limite de 100 MB.'
+  }
+  return null
+}
+
+/**
+ * Envia um vídeo de produto como corpo bruto (application/octet-stream),
+ * não como base64 em JSON — arquivos de vídeo são grandes demais para inflar
+ * em memória. O nome vai na query string e o back-end devolve a URL final
+ * (/uploads/...), que é salva no produto como string.
+ */
+export async function uploadVideo(file: File, token: string): Promise<string> {
+  const validationError = validateVideoFile(file)
+  if (validationError !== null) {
+    throw new ApiError(400, validationError)
+  }
+
+  let response: Response
+  try {
+    response = await fetch(
+      `${API_BASE}/upload/video?filename=${encodeURIComponent(file.name)}`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/octet-stream',
+        },
+        body: file,
+      },
+    )
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw error
+    }
+    throw new ApiError(0, 'Não foi possível conectar ao servidor.')
+  }
+
+  const payload: unknown = await response.json().catch(() => null)
+
+  if (!response.ok) {
+    throw new ApiError(
+      response.status,
+      failureMessage(response, payload, 'Não foi possível enviar o vídeo.'),
+    )
+  }
+
+  const url =
+    isRecord(payload) && typeof payload.url === 'string' ? payload.url : ''
+  if (url === '') {
+    throw new ApiError(200, 'Resposta inválida do servidor.')
+  }
+
+  return url
 }

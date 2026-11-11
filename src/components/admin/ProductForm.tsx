@@ -3,6 +3,7 @@ import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 import { categories as canonicalCategories } from '../../data/categories'
 import type { ProductInput } from '../../services/api'
+import { validateVideoFile } from '../../services/api'
 import type { Product } from '../../types/product'
 import { ConfirmDialog } from './ConfirmDialog'
 import { Icon } from '../ui/Icon'
@@ -11,6 +12,7 @@ interface ProductFormProps {
   product?: Product | null
   products?: Product[]
   onSubmit: (input: ProductInput) => Promise<void>
+  onUploadVideo: (file: File) => Promise<string>
   onCancel?: () => void
   submitLabel?: string
   submittingLabel?: string
@@ -26,6 +28,13 @@ interface ImageSlot {
   file: File | null
 }
 
+interface VideoSlot {
+  url: string
+  file: File | null
+  uploading: boolean
+  error: string | null
+}
+
 interface FormState {
   name: string
   category: string
@@ -38,6 +47,7 @@ interface FormState {
   shortDescription: string
   description: string
   imageSlots: ImageSlot[]
+  videoSlots: VideoSlot[]
   showPrice: boolean
   priceInput: string
   specs: TechnicalSpec[]
@@ -46,9 +56,15 @@ interface FormState {
 
 const MAX_IMAGE_SLOTS = 5
 const MAX_EXTRA_IMAGE_SLOTS = 2
+const MAX_VIDEO_SLOTS = 3
+const MAX_EXTRA_VIDEO_SLOTS = 2
 
 function createEmptyImageSlot(): ImageSlot {
   return { url: '', file: null }
+}
+
+function createEmptyVideoSlot(): VideoSlot {
+  return { url: '', file: null, uploading: false, error: null }
 }
 
 const EMPTY_FORM: FormState = {
@@ -63,6 +79,7 @@ const EMPTY_FORM: FormState = {
   shortDescription: '',
   description: '',
   imageSlots: [createEmptyImageSlot()],
+  videoSlots: [createEmptyVideoSlot()],
   showPrice: false,
   priceInput: '',
   specs: [],
@@ -131,6 +148,17 @@ function buildInitialImageSlots(product: Product | null | undefined): ImageSlot[
   return urls.map((url) => ({ url, file: null }))
 }
 
+function buildInitialVideoSlots(product: Product | null | undefined): VideoSlot[] {
+  if (!product) return [createEmptyVideoSlot()]
+
+  const urls = [product.video_url, product.video_url_2, product.video_url_3]
+    .map((url) => (typeof url === 'string' ? url.trim() : ''))
+    .filter((url) => url !== '')
+
+  if (urls.length === 0) return [createEmptyVideoSlot()]
+  return urls.map((url) => ({ url, file: null, uploading: false, error: null }))
+}
+
 function buildInitialForm(product: Product | null | undefined): FormState {
   if (!product) {
     return EMPTY_FORM
@@ -150,6 +178,7 @@ function buildInitialForm(product: Product | null | undefined): FormState {
     shortDescription: product.short_description || '',
     description: product.description || '',
     imageSlots: buildInitialImageSlots(product),
+    videoSlots: buildInitialVideoSlots(product),
     showPrice: hasPrice,
     priceInput: hasPrice ? formatPriceInput(product.price as number) : '',
     specs: parseSpecs(product.technical_specs),
@@ -280,10 +309,96 @@ function ImageField({ label, slot, onUrlChange, onFileChange, onRemove }: ImageF
   )
 }
 
+interface VideoFieldProps {
+  label: string
+  slot: VideoSlot
+  onUrlChange: (value: string) => void
+  onFileChange: (file: File) => void
+  onRemove: () => void
+}
+
+function VideoField({ label, slot, onUrlChange, onFileChange, onRemove }: VideoFieldProps) {
+  const objectUrl = useMemo(
+    () => (slot.file ? URL.createObjectURL(slot.file) : ''),
+    [slot.file],
+  )
+
+  useEffect(() => {
+    return () => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [objectUrl])
+
+  const preview = slot.file ? objectUrl : slot.url.trim()
+
+  return (
+    <div className="space-y-2">
+      <div className="flex min-h-7 items-center justify-between gap-2">
+        <span className={LABEL_CLASS}>{label}</span>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-red-700"
+        >
+          <Icon name="trash" className="h-3.5 w-3.5" />
+          Remover
+        </button>
+      </div>
+
+      <div className="flex h-40 items-center justify-center overflow-hidden rounded-xl border border-dashed border-slate-300 bg-slate-50">
+        {preview !== '' ? (
+          <video
+            src={preview}
+            controls
+            preload="metadata"
+            className="h-full w-full object-contain"
+            aria-label={`Pré-visualização de ${label}`}
+          />
+        ) : (
+          <span className="px-4 text-center text-sm text-slate-400">
+            Nenhum vídeo
+          </span>
+        )}
+      </div>
+
+      <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50">
+        <Icon name="play" className="h-4 w-4 text-slate-400" />
+        Selecionar vídeo
+        <input
+          type="file"
+          accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov,.m4v"
+          hidden
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) onFileChange(file)
+            e.currentTarget.value = ''
+          }}
+        />
+      </label>
+
+      <input
+        type="text"
+        value={slot.url}
+        onChange={(e) => onUrlChange(e.target.value)}
+        placeholder="https://... ou /uploads/video.mp4"
+        aria-label={`URL de ${label}`}
+        className={FIELD_CLASS}
+      />
+
+      {slot.error ? (
+        <p className="text-sm font-medium text-red-600" role="alert">
+          {slot.error}
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
 export function ProductForm({
   product,
   products = [],
   onSubmit,
+  onUploadVideo,
   onCancel,
   submitLabel = 'Adicionar produto',
   submittingLabel = 'Adicionando...',
@@ -293,6 +408,7 @@ export function ProductForm({
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [priceError, setPriceError] = useState<string | null>(null)
   const [pendingImageIndex, setPendingImageIndex] = useState<number | null>(null)
+  const [pendingVideoIndex, setPendingVideoIndex] = useState<number | null>(null)
   const [pendingSpecIndex, setPendingSpecIndex] = useState<number | null>(null)
 
   const categories = useMemo(
@@ -393,6 +509,42 @@ export function ProductForm({
     }))
   }
 
+  function updateVideoSlot(index: number, patch: Partial<VideoSlot>) {
+    setForm((prev) => ({
+      ...prev,
+      videoSlots: prev.videoSlots.map((slot, i) =>
+        i === index ? { ...slot, ...patch } : slot,
+      ),
+    }))
+  }
+
+  function confirmRemoveVideo() {
+    if (pendingVideoIndex === null) return
+    setForm((prev) => {
+      const nextSlots = prev.videoSlots.filter((_, i) => i !== pendingVideoIndex)
+      return {
+        ...prev,
+        videoSlots: nextSlots.length > 0 ? nextSlots : [createEmptyVideoSlot()],
+      }
+    })
+    setPendingVideoIndex(null)
+  }
+
+  const activeVideoCount = form.videoSlots.filter(
+    (slot) => slot.file !== null || slot.url.trim() !== '',
+  ).length
+  const canAddVideoSlot =
+    form.videoSlots.length < MAX_VIDEO_SLOTS &&
+    form.videoSlots.length < activeVideoCount + MAX_EXTRA_VIDEO_SLOTS
+
+  function addVideoSlot() {
+    if (!canAddVideoSlot) return
+    setForm((prev) => ({
+      ...prev,
+      videoSlots: [...prev.videoSlots, createEmptyVideoSlot()],
+    }))
+  }
+
   const pendingSpec = pendingSpecIndex !== null ? form.specs[pendingSpecIndex] ?? null : null
 
   function confirmRemoveSpec() {
@@ -421,29 +573,69 @@ export function ProductForm({
     const parsedPrice = form.showPrice ? parsePriceInput(form.priceInput) : null
     const imageValues = form.imageSlots.map((slot) => slot.file ?? slot.url.trim())
 
-    const input: ProductInput = {
-      name: form.name.trim(),
-      category,
-      short_description: form.shortDescription.trim(),
-      description: form.description,
-      technical_specs: JSON.stringify(specs),
-      sizes: form.sizes.join(','),
-      price: parsedPrice,
-      is_active: form.isActive,
-      image_url: imageValues[0] ?? '',
-      image_url_2: imageValues[1] ?? '',
-      image_url_3: imageValues[2] ?? '',
-      image_url_4: imageValues[3] ?? '',
-      image_url_5: imageValues[4] ?? '',
-    }
-
-    if (subcategory !== '') input.subcategory = subcategory
-    if (brand !== '') input.brand = brand
-
     setSubmitting(true)
     setErrorMessage(null)
     setPriceError(null)
     try {
+      const videoValues: string[] = []
+      for (let index = 0; index < form.videoSlots.length; index += 1) {
+        const slot = form.videoSlots[index]
+        if (slot.file) {
+          setForm((prev) => ({
+            ...prev,
+            videoSlots: prev.videoSlots.map((item, i) =>
+              i === index ? { ...item, uploading: true, error: null } : item,
+            ),
+          }))
+          try {
+            const uploadedUrl = await onUploadVideo(slot.file)
+            videoValues.push(uploadedUrl)
+            setForm((prev) => ({
+              ...prev,
+              videoSlots: prev.videoSlots.map((item, i) =>
+                i === index
+                  ? { ...item, url: uploadedUrl, file: null, uploading: false, error: null }
+                  : item,
+              ),
+            }))
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : 'Não foi possível enviar o vídeo.'
+            setForm((prev) => ({
+              ...prev,
+              videoSlots: prev.videoSlots.map((item, i) =>
+                i === index ? { ...item, uploading: false, error: message } : item,
+              ),
+            }))
+            throw error
+          }
+        } else {
+          videoValues.push(slot.url.trim())
+        }
+      }
+
+      const input: ProductInput = {
+        name: form.name.trim(),
+        category,
+        short_description: form.shortDescription.trim(),
+        description: form.description,
+        technical_specs: JSON.stringify(specs),
+        sizes: form.sizes.join(','),
+        price: parsedPrice,
+        is_active: form.isActive,
+        image_url: imageValues[0] ?? '',
+        image_url_2: imageValues[1] ?? '',
+        image_url_3: imageValues[2] ?? '',
+        image_url_4: imageValues[3] ?? '',
+        image_url_5: imageValues[4] ?? '',
+        video_url: videoValues[0] ?? '',
+        video_url_2: videoValues[1] ?? '',
+        video_url_3: videoValues[2] ?? '',
+      }
+
+      if (subcategory !== '') input.subcategory = subcategory
+      if (brand !== '') input.brand = brand
+
       await onSubmit(input)
       if (!product) {
         setForm(EMPTY_FORM)
@@ -654,6 +846,44 @@ export function ProductForm({
       </div>
 
       <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className={SECTION_TITLE_CLASS}>Vídeos do Produto (Opcional)</h3>
+          {canAddVideoSlot ? (
+            <button
+              type="button"
+              onClick={addVideoSlot}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-cyan-600 px-3 py-2 text-sm font-semibold text-cyan-700 transition-colors hover:bg-cyan-50"
+            >
+              <Icon name="plus" className="h-4 w-4" />
+              Adicionar vídeo
+            </button>
+          ) : null}
+        </div>
+        <p className="text-sm text-slate-500">
+          Envie vídeos curtos (MP4, WebM ou MOV, até 100 MB) ou informe uma URL.
+        </p>
+        <div className="grid gap-5 md:grid-cols-3">
+          {form.videoSlots.map((slot, index) => (
+            <VideoField
+              key={index}
+              label={`Vídeo ${index + 1}${index === 0 ? '' : ' (opcional)'}`}
+              slot={slot}
+              onUrlChange={(value) => updateVideoSlot(index, { url: value, error: null })}
+              onFileChange={(file) => {
+                const validationError = validateVideoFile(file)
+                updateVideoSlot(index, {
+                  file: validationError ? null : file,
+                  error: validationError,
+                  ...(validationError ? {} : {}),
+                })
+              }}
+              onRemove={() => setPendingVideoIndex(index)}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3">
         <h3 className={SECTION_TITLE_CLASS}>Preço (Opcional)</h3>
         <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
           <div className="flex items-center justify-between gap-3">
@@ -840,6 +1070,23 @@ export function ProductForm({
         confirmLabel="Remover"
         onConfirm={confirmRemoveImage}
         onCancel={() => setPendingImageIndex(null)}
+      />
+
+      <ConfirmDialog
+        isOpen={pendingVideoIndex !== null}
+        title="Remover vídeo"
+        message={
+          <>
+            Tem certeza que deseja remover o{' '}
+            <strong className="font-semibold">
+              {pendingVideoIndex !== null ? `vídeo ${pendingVideoIndex + 1}` : 'vídeo'}
+            </strong>
+            ? Os vídeos seguintes serão reorganizados.
+          </>
+        }
+        confirmLabel="Remover"
+        onConfirm={confirmRemoveVideo}
+        onCancel={() => setPendingVideoIndex(null)}
       />
 
       <ConfirmDialog

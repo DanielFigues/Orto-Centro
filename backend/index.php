@@ -145,6 +145,9 @@ function product_row(array $row): array
         'image_url_3' => (string) ($row['image_url_3'] ?? ''),
         'image_url_4' => (string) ($row['image_url_4'] ?? ''),
         'image_url_5' => (string) ($row['image_url_5'] ?? ''),
+        'video_url' => (string) ($row['video_url'] ?? ''),
+        'video_url_2' => (string) ($row['video_url_2'] ?? ''),
+        'video_url_3' => (string) ($row['video_url_3'] ?? ''),
         'description' => (string) ($row['description'] ?? ''),
         'short_description' => (string) ($row['short_description'] ?? ''),
         'technical_specs' => (string) ($row['technical_specs'] ?? ''),
@@ -224,6 +227,26 @@ function process_image_field(?string $value, string $fieldName): string
     return $value;
 }
 
+function process_video_field(?string $value, string $fieldName): string
+{
+    if ($value === null || trim($value) === '') {
+        return '';
+    }
+    $value = trim($value);
+
+    // O arquivo em si é enviado antes, via POST /upload/video (que devolve a
+    // URL /uploads/...); aqui chega apenas a URL final. Base64 em JSON não é
+    // aceito para vídeo: inflaria a memória do PHP.
+    if (str_starts_with($value, 'http://')
+        || str_starts_with($value, 'https://')
+        || str_starts_with($value, '/uploads/')
+    ) {
+        return $value;
+    }
+
+    fail(400, "O campo $fieldName deve ser uma URL de vídeo (http, https ou /uploads/).");
+}
+
 function delete_uploaded_file(string $imageUrl): void
 {
     // Apenas URLs de uploads locais (/uploads/<arquivo>) possuem um arquivo
@@ -272,6 +295,87 @@ if (str_starts_with($path, '/api')) {
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $pdo = db();
 
+// Upload de vídeo de produto: corpo bruto (application/octet-stream) com o
+// nome do arquivo na query string (?filename=...). Multipart não é usado
+// porque o padrão do PHP (upload_max_filesize=2M) descarta silenciosamente
+// arquivos maiores; base64 em JSON inflaria a memória. O stream abaixo grava
+// em blocos de 512 KB, sem carregar o arquivo inteiro na memória.
+if ($path === '/upload/video' && $method === 'POST') {
+    require_auth();
+
+    $filename = trim((string) ($_GET['filename'] ?? ''));
+    if ($filename === '') {
+        fail(400, 'Informe o nome do arquivo de vídeo.');
+    }
+
+    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    $allowedExtensions = ['mp4', 'webm', 'mov', 'm4v'];
+    if (!in_array($ext, $allowedExtensions, true)) {
+        fail(400, 'Formato de vídeo não suportado. Use MP4, WebM ou MOV.');
+    }
+
+    $maxBytes = 100 * 1024 * 1024; // 100 MB por vídeo
+    $contentLength = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
+    if ($contentLength > $maxBytes) {
+        fail(413, 'O vídeo excede o limite de 100 MB.');
+    }
+
+    $uploadsDir = __DIR__ . '/../public/uploads';
+    if (!is_dir($uploadsDir)) {
+        mkdir($uploadsDir, 0775, true);
+    }
+
+    $safeName = 'vid_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+    $target = $uploadsDir . '/' . $safeName;
+
+    $source = fopen('php://input', 'rb');
+    $output = fopen($target, 'wb');
+    if ($source === false || $output === false) {
+        if (is_resource($source)) fclose($source);
+        if (is_resource($output)) fclose($output);
+        @unlink($target);
+        fail(500, 'Não foi possível salvar o vídeo.');
+    }
+
+    $written = 0;
+    try {
+        while (!feof($source)) {
+            $chunk = fread($source, 512 * 1024);
+            if ($chunk === false) {
+                throw new RuntimeException('read');
+            }
+            if ($chunk === '') {
+                continue;
+            }
+            $written += strlen($chunk);
+            if ($written > $maxBytes) {
+                fclose($source);
+                fclose($output);
+                @unlink($target);
+                fail(413, 'O vídeo excede o limite de 100 MB.');
+            }
+            if (fwrite($output, $chunk) === false) {
+                throw new RuntimeException('write');
+            }
+        }
+    } catch (Throwable $e) {
+        fclose($source);
+        fclose($output);
+        @unlink($target);
+        fail(500, 'Não foi possível salvar o vídeo.');
+    }
+
+    fclose($source);
+    fclose($output);
+
+    if ($written === 0) {
+        @unlink($target);
+        fail(400, 'Nenhum vídeo foi enviado.');
+    }
+
+    respond(201, ['url' => '/uploads/' . $safeName]);
+}
+
 if ($path === '/products' && $method === 'GET') {
     $rows = $pdo->query('SELECT * FROM products WHERE is_active = 1 ORDER BY id')->fetchAll();
     respond(200, array_map('product_row', $rows));
@@ -297,6 +401,9 @@ if ($path === '/products' && $method === 'POST') {
     $imageUrl3 = process_image_field(isset($data['image_url_3']) ? (string) $data['image_url_3'] : '', 'image_url_3');
     $imageUrl4 = process_image_field(isset($data['image_url_4']) ? (string) $data['image_url_4'] : '', 'image_url_4');
     $imageUrl5 = process_image_field(isset($data['image_url_5']) ? (string) $data['image_url_5'] : '', 'image_url_5');
+    $videoUrl = process_video_field(isset($data['video_url']) ? (string) $data['video_url'] : '', 'video_url');
+    $videoUrl2 = process_video_field(isset($data['video_url_2']) ? (string) $data['video_url_2'] : '', 'video_url_2');
+    $videoUrl3 = process_video_field(isset($data['video_url_3']) ? (string) $data['video_url_3'] : '', 'video_url_3');
     $description = trim((string) ($data['description'] ?? ''));
     $shortDescription = trim((string) ($data['short_description'] ?? ''));
     $technicalSpecs = trim((string) ($data['technical_specs'] ?? ''));
@@ -319,8 +426,8 @@ if ($path === '/products' && $method === 'POST') {
     $isActive = isset($data['is_active']) ? (bool) $data['is_active'] : true;
 
     $stmt = $pdo->prepare(
-        'INSERT INTO products (name, category, subcategory, image_url, image_url_2, image_url_3, image_url_4, image_url_5, description, short_description, technical_specs, brand, sizes, price, is_active)
-         VALUES (:name, :category, :subcategory, :image_url, :image_url_2, :image_url_3, :image_url_4, :image_url_5, :description, :short_description, :technical_specs, :brand, :sizes, :price, :is_active)'
+        'INSERT INTO products (name, category, subcategory, image_url, image_url_2, image_url_3, image_url_4, image_url_5, video_url, video_url_2, video_url_3, description, short_description, technical_specs, brand, sizes, price, is_active)
+         VALUES (:name, :category, :subcategory, :image_url, :image_url_2, :image_url_3, :image_url_4, :image_url_5, :video_url, :video_url_2, :video_url_3, :description, :short_description, :technical_specs, :brand, :sizes, :price, :is_active)'
     );
     $stmt->execute([
         ':name' => $name,
@@ -331,6 +438,9 @@ if ($path === '/products' && $method === 'POST') {
         ':image_url_3' => $imageUrl3,
         ':image_url_4' => $imageUrl4,
         ':image_url_5' => $imageUrl5,
+        ':video_url' => $videoUrl,
+        ':video_url_2' => $videoUrl2,
+        ':video_url_3' => $videoUrl3,
         ':description' => $description,
         ':short_description' => $shortDescription,
         ':technical_specs' => $technicalSpecs,
@@ -366,6 +476,9 @@ if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'DELETE') 
             $existing['image_url_3'],
             $existing['image_url_4'] ?? '',
             $existing['image_url_5'] ?? '',
+            $existing['video_url'] ?? '',
+            $existing['video_url_2'] ?? '',
+            $existing['video_url_3'] ?? '',
         ]);
 
         $stmt = $pdo->prepare('DELETE FROM products WHERE id = :id');
@@ -397,6 +510,9 @@ if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'PUT') {
         $imageUrl3 = array_key_exists('image_url_3', $data) ? process_image_field((string) $data['image_url_3'], 'image_url_3') : (string) ($existing['image_url_3'] ?? '');
         $imageUrl4 = array_key_exists('image_url_4', $data) ? process_image_field((string) $data['image_url_4'], 'image_url_4') : (string) ($existing['image_url_4'] ?? '');
         $imageUrl5 = array_key_exists('image_url_5', $data) ? process_image_field((string) $data['image_url_5'], 'image_url_5') : (string) ($existing['image_url_5'] ?? '');
+        $videoUrl = array_key_exists('video_url', $data) ? process_video_field((string) $data['video_url'], 'video_url') : (string) ($existing['video_url'] ?? '');
+        $videoUrl2 = array_key_exists('video_url_2', $data) ? process_video_field((string) $data['video_url_2'], 'video_url_2') : (string) ($existing['video_url_2'] ?? '');
+        $videoUrl3 = array_key_exists('video_url_3', $data) ? process_video_field((string) $data['video_url_3'], 'video_url_3') : (string) ($existing['video_url_3'] ?? '');
         $description = array_key_exists('description', $data) ? trim((string) ($data['description'] ?? '')) : (string) ($existing['description'] ?? '');
         $shortDescription = array_key_exists('short_description', $data) ? trim((string) ($data['short_description'] ?? '')) : (string) ($existing['short_description'] ?? '');
         $technicalSpecs = array_key_exists('technical_specs', $data) ? trim((string) ($data['technical_specs'] ?? '')) : (string) ($existing['technical_specs'] ?? '');
@@ -424,11 +540,15 @@ if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'PUT') {
             (string) ($existing['image_url_3'] ?? ''),
             (string) ($existing['image_url_4'] ?? ''),
             (string) ($existing['image_url_5'] ?? ''),
+            (string) ($existing['video_url'] ?? ''),
+            (string) ($existing['video_url_2'] ?? ''),
+            (string) ($existing['video_url_3'] ?? ''),
         ];
 
         $update = $pdo->prepare(
             'UPDATE products SET name = :name, category = :category, subcategory = :subcategory,
              image_url = :image_url, image_url_2 = :image_url_2, image_url_3 = :image_url_3, image_url_4 = :image_url_4, image_url_5 = :image_url_5,
+             video_url = :video_url, video_url_2 = :video_url_2, video_url_3 = :video_url_3,
              description = :description, short_description = :short_description,
              technical_specs = :technical_specs, brand = :brand, sizes = :sizes, price = :price, is_active = :is_active
              WHERE id = :id'
@@ -442,6 +562,9 @@ if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'PUT') {
             ':image_url_3' => $imageUrl3,
             ':image_url_4' => $imageUrl4,
             ':image_url_5' => $imageUrl5,
+            ':video_url' => $videoUrl,
+            ':video_url_2' => $videoUrl2,
+            ':video_url_3' => $videoUrl3,
             ':description' => $description,
             ':short_description' => $shortDescription,
             ':technical_specs' => $technicalSpecs,
@@ -453,7 +576,7 @@ if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'PUT') {
         ]);
 
         // Remove do disco os arquivos locais que foram substituídos ou removidos.
-        $currentUrls = [$imageUrl, $imageUrl2, $imageUrl3, $imageUrl4, $imageUrl5];
+        $currentUrls = [$imageUrl, $imageUrl2, $imageUrl3, $imageUrl4, $imageUrl5, $videoUrl, $videoUrl2, $videoUrl3];
         foreach ($previousUrls as $oldUrl) {
             $stillInUse = in_array($oldUrl, $currentUrls, true);
             if ($oldUrl !== '' && !$stillInUse) {

@@ -214,6 +214,13 @@ export function Icon({ name, className = 'h-5 w-5' }: IconProps) {
           <path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L3 17.8V21h3.2l6.3-6.3a4 4 0 0 0 5.2-5.4l-2.9 2.9-2.5-.7-.7-2.5z" />
         </svg>
       )
+    case 'play':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M10 8.5v7l6-3.5z" />
+        </svg>
+      )
     default:
       return null
   }

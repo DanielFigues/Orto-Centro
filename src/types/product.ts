@@ -8,6 +8,9 @@
   image_url_3?: string
   image_url_4?: string
   image_url_5?: string
+  video_url?: string
+  video_url_2?: string
+  video_url_3?: string
   description?: string
   short_description?: string
   technical_specs?: string

@@ -6,6 +6,7 @@ import {
   deleteProduct,
   listAllProducts,
   updateProduct,
+  uploadVideo,
   type ProductInput,
 } from '../../services/api'
 import type { Product } from '../../types/product'
@@ -135,6 +136,11 @@ export function AdminDashboard({ token, onLock }: AdminDashboardProps) {
       }
     },
     [token, toast, refresh, onLock, editingProduct, closeModal],
+  )
+
+  const handleUploadVideo = useCallback(
+    (file: File) => uploadVideo(file, token),
+    [token],
   )
 
   const requestDelete = useCallback((product: Product) => {
@@ -376,6 +382,7 @@ export function AdminDashboard({ token, onLock }: AdminDashboardProps) {
             product={editingProduct}
             products={products}
             onSubmit={handleSubmit}
+            onUploadVideo={handleUploadVideo}
             onCancel={closeModal}
             submitLabel={editingProduct ? 'Salvar alterações' : 'Adicionar produto'}
             submittingLabel={editingProduct ? 'Salvando...' : 'Adicionando...'}
