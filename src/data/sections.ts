@@ -7,7 +7,6 @@
 export const sectionLinks: SectionLink[] = [
   { id: 'inicio', label: 'Início', icon: 'home' },
   { id: 'catalogo', label: 'Catálogo', icon: 'tools' },
-  { id: 'contato', label: 'Contato', icon: 'phone' },
 ]
 
 export const contact = {

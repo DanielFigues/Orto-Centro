@@ -35,6 +35,23 @@ function toText(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''
 }
 
+function toPrice(value: unknown): number | null {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : null
+  }
+
+  if (typeof value === 'string' && value.trim() !== '') {
+    const raw = value.trim()
+    const normalized = raw.includes(',')
+      ? raw.replace(/\./g, '').replace(',', '.')
+      : raw
+    const parsed = Number(normalized)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+
+  return null
+}
+
 function parseProduct(value: unknown): Product | null {
   if (!isRecord(value)) return null
   if (typeof value.id !== 'number' || !Number.isFinite(value.id)) return null
@@ -56,6 +73,7 @@ function parseProduct(value: unknown): Product | null {
     technical_specs: toText(value.technical_specs),
     brand: toText(value.brand),
     sizes: toText(value.sizes),
+    price: toPrice(value.price),
     is_active: value.is_active === true || value.is_active === 1,
   }
 }

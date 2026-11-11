@@ -1,203 +1,457 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
-import type { Product } from '../types/product'
-import { fetchProducts } from '../services/api'
+import { ProductCard } from '../components/catalog/ProductCard'
+import { ProductPrice } from '../components/catalog/ProductPrice'
 import { Icon } from '../components/ui/Icon'
+import { useCatalog } from '../context/catalogContextValue'
+import { categoryPath, getCategoryByName } from '../data/categories'
+import { buildWhatsAppUrl } from '../data/store'
 
 interface ProductDetailPageProps {
   productId: number
 }
 
-function parseSizes(sizes: string | undefined): string[] {
-  if (!sizes || sizes.trim() === '') return []
-  return sizes
-    .split(',')
-    .map((s) => s.trim())
-    .filter((s) => s !== '')
+interface TechnicalSpec {
+  property: string
+  value: string
 }
 
-export function ProductDetailPage({ productId }: ProductDetailPageProps) {
-  const [products, setProducts] = useState<Product[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [selectedImage, setSelectedImage] = useState<{ productId: number; image: string } | null>(null)
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
+function parseSpecs(raw: string | undefined): TechnicalSpec[] {
+  if (!raw || raw.trim() === '') return []
+
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(raw)
+  } catch {
+    return []
+  }
+
+  if (!Array.isArray(parsed)) return []
+
+  return parsed
+    .filter(
+      (item): item is Record<string, unknown> =>
+        typeof item === 'object' && item !== null,
+    )
+    .map((item) => {
+      const property =
+        typeof item.property === 'string'
+          ? item.property
+          : typeof item.propriedade === 'string'
+            ? item.propriedade
+            : ''
+      const value =
+        typeof item.value === 'string'
+          ? item.value
+          : typeof item.valor === 'string'
+            ? item.valor
+            : ''
+      return { property: property.trim(), value: value.trim() }
+    })
+    .filter((spec) => spec.property !== '' && spec.value !== '')
+}
+
+function ImageZoomDialog({
+  src,
+  alt,
+  onClose,
+}: {
+  src: string
+  alt: string
+  onClose: () => void
+}) {
+  const panelRef = useRef<HTMLDivElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
-    const controller = new AbortController()
+    const previousFocus = document.activeElement as HTMLElement | null
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const frame = window.requestAnimationFrame(() => closeButtonRef.current?.focus())
 
-    async function loadProducts() {
-      try {
-        setProducts(await fetchProducts(controller.signal))
-      } catch (error) {
-        if (controller.signal.aborted) return
-        setErrorMessage(
-          error instanceof Error
-            ? error.message
-            : 'Não foi possível carregar o produto.',
-        )
-      } finally {
-        if (!controller.signal.aborted) {
-          setIsLoading(false)
-        }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        onClose()
+        return
+      }
+
+      if (event.key !== 'Tab') return
+      const focusable = panelRef.current?.querySelectorAll<HTMLElement>(
+        FOCUSABLE_SELECTOR,
+      )
+      if (!focusable || focusable.length === 0) return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
       }
     }
 
-    void loadProducts()
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', onKeyDown)
+      if (
+        previousFocus !== null &&
+        previousFocus !== document.body &&
+        previousFocus.isConnected
+      ) {
+        previousFocus.focus()
+      }
+    }
+  }, [onClose])
 
-    return () => controller.abort()
-  }, [])
+  return createPortal(
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+      <div
+        aria-hidden="true"
+        onClick={onClose}
+        className="absolute inset-0 bg-neutral-950/90"
+      />
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Imagem ampliada: ${alt}`}
+        className="relative z-10 flex max-h-full max-w-5xl flex-col"
+      >
+        <button
+          ref={closeButtonRef}
+          type="button"
+          onClick={onClose}
+          aria-label="Fechar imagem ampliada"
+          className="focus-ring absolute right-2 top-2 inline-flex h-11 w-11 items-center justify-center rounded-button bg-black/50 text-white transition-colors hover:bg-black/70"
+        >
+          <Icon name="x" className="h-5 w-5" />
+        </button>
+        <img
+          src={src}
+          alt={alt}
+          width={1200}
+          height={1200}
+          decoding="async"
+          className="max-h-[85svh] w-auto max-w-full rounded-card object-contain"
+        />
+      </div>
+    </div>,
+    document.body,
+  )
+}
+
+export function ProductDetailPage({ productId }: ProductDetailPageProps) {
+  const { activeProducts, isLoading, errorMessage, retry } = useCatalog()
+  const [selectedImage, setSelectedImage] = useState<{
+    productId: number
+    image: string
+  } | null>(null)
+  const [zoomImage, setZoomImage] = useState<string | null>(null)
+  const [mainImageError, setMainImageError] = useState(false)
 
   const product = useMemo(
-    () => products.find((p) => p.id === productId),
-    [products, productId],
+    () => activeProducts.find((item) => item.id === productId),
+    [activeProducts, productId],
   )
+
+  const galleryImages = useMemo(() => {
+    if (!product) return []
+    return [product.image_url, product.image_url_2, product.image_url_3].filter(
+      (img): img is string => typeof img === 'string' && img.trim() !== '',
+    )
+  }, [product])
 
   const currentImage =
     selectedImage && selectedImage.productId === productId
       ? selectedImage.image
-      : product?.image_url || ''
+      : galleryImages[0] ?? ''
 
-  const galleryImages = useMemo(() => {
+  const technicalSpecs = useMemo(
+    () => parseSpecs(product?.technical_specs),
+    [product],
+  )
+
+  const relatedProducts = useMemo(() => {
     if (!product) return []
-    const images = [product.image_url, product.image_url_2, product.image_url_3]
-      .filter((img): img is string => typeof img === 'string' && img.trim() !== '')
-    return images
-  }, [product])
-
-  const sizes = useMemo(() => parseSizes(product?.sizes), [product])
+    return activeProducts
+      .filter(
+        (item) => item.category === product.category && item.id !== product.id,
+      )
+      .slice(0, 4)
+  }, [activeProducts, product])
 
   if (isLoading) {
     return (
-      <div className="flex min-h-svh flex-col">
-        <div className="loading-state">Carregando produto...</div>
-      </div>
+      <p className="container py-16 text-center text-body text-neutral-600 dark:text-neutral-300">
+        Carregando produto...
+      </p>
     )
   }
 
-  if (errorMessage !== null || !product) {
+  if (errorMessage !== null) {
     return (
       <div
         role="alert"
-        className="flex flex-col items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-6 py-12 text-center dark:border-red-900 dark:bg-red-950"
+        className="mx-auto flex max-w-xl flex-col items-center gap-3 rounded-card border border-red-200 bg-red-50 px-6 py-12 text-center dark:border-red-900 dark:bg-red-950"
       >
-        <p className="text-sm font-medium text-red-700 dark:text-red-300">
-          {errorMessage || 'Produto não encontrado.'}
+        <p className="text-body font-medium text-red-700 dark:text-red-300">
+          {errorMessage}
         </p>
+        <button
+          type="button"
+          onClick={retry}
+          className="focus-ring rounded-button border border-red-300 px-4 py-2 text-body font-medium text-red-700 transition-colors hover:border-red-500 dark:border-red-800 dark:text-red-300"
+        >
+          Tentar novamente
+        </button>
       </div>
     )
   }
 
+  if (!product) {
+    return (
+      <div className="mx-auto flex max-w-xl flex-col items-center gap-3 rounded-card border border-dashed border-neutral-300 px-6 py-14 text-center dark:border-neutral-700">
+        <Icon name="search" className="h-8 w-8 text-neutral-500 dark:text-neutral-400" />
+        <p className="text-body font-medium text-neutral-700 dark:text-neutral-200">
+          Produto não encontrado.
+        </p>
+        <Link
+          to="/catalogo"
+          className="focus-ring inline-flex min-h-11 items-center rounded-button border border-neutral-300 px-4 text-body font-medium text-neutral-700 transition-colors hover:border-neutral-400 dark:border-neutral-700 dark:text-neutral-200"
+        >
+          Ver catálogo
+        </Link>
+      </div>
+    )
+  }
+
+  const productUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/produto/${product.id}`
+      : `/produto/${product.id}`
+  const consultHref = buildWhatsAppUrl(
+    `Olá! Gostaria de consultar este produto: ${product.name}\n${productUrl}`,
+  )
+  const showMainImage = currentImage !== '' && !mainImageError
+
   return (
-    <div className="flex min-h-svh flex-col">
-      <main className="flex-1 px-4 py-8 sm:px-6">
-        <div className="mx-auto max-w-6xl">
-          <nav className="mb-6 text-sm text-neutral-600 dark:text-neutral-400">
-            <Link to="/" className="hover:text-neutral-900 dark:hover:text-neutral-200">Início</Link> / <span>{product.category}</span>
-            {product.subcategory && <> / <span>{product.subcategory}</span></>}
-          </nav>
+    <div className="container">
+      <nav aria-label="Breadcrumb" className="text-label text-neutral-600 dark:text-neutral-300">
+        <ol className="flex flex-wrap items-center gap-1.5">
+          <li>
+            <Link to="/" className="focus-ring rounded transition-colors hover:text-sky-700 dark:hover:text-sky-300">
+              Início
+            </Link>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li>
+            <Link
+              to={categoryPath(getCategoryByName(product.category) ?? product.category)}
+              className="focus-ring rounded transition-colors hover:text-sky-700 dark:hover:text-sky-300"
+            >
+              {product.category}
+            </Link>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li className="font-medium text-neutral-900 dark:text-white">
+            {product.name}
+          </li>
+        </ol>
+      </nav>
 
-          <div className="grid gap-8 lg:grid-cols-2">
-            <div className="space-y-4">
-              <div className="aspect-square overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-800">
-                {currentImage ? (
-                  <img
-                    src={currentImage}
-                    alt={product.name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center">
-                    <Icon
-                      name="tools"
-                      className="h-24 w-24 text-sky-500 dark:text-sky-400"
-                    />
-                  </div>
-                )}
+      <div className="mt-6 grid min-w-0 gap-8 lg:grid-cols-2 lg:gap-10">
+        <div className="min-w-0 space-y-4">
+          <div className="relative aspect-square overflow-hidden rounded-card-lg border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-800">
+            {showMainImage ? (
+              <button
+                type="button"
+                onClick={() => setZoomImage(currentImage)}
+                className="focus-ring group block h-full w-full"
+                aria-label={`Ampliar imagem de ${product.name}`}
+              >
+                <img
+                  src={currentImage}
+                  alt={product.name}
+                  width={1000}
+                  height={1000}
+                  decoding="async"
+                  onError={() => setMainImageError(true)}
+                  className="h-full w-full object-cover"
+                />
+                <span className="pointer-events-none absolute bottom-3 right-3 inline-flex min-h-11 items-center gap-2 rounded-button bg-black/60 px-3 text-label font-medium text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                  <Icon name="search" className="h-4 w-4" />
+                  Ampliar
+                </span>
+              </button>
+            ) : (
+              <div className="flex h-full items-center justify-center">
+                <Icon name="tools" className="h-24 w-24 text-sky-600 dark:text-sky-400" />
               </div>
-              {galleryImages.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto">
-                  {galleryImages.map((img) => (
-                    <button
-                      key={img}
-                      onClick={() => setSelectedImage({ productId, image: img })}
-                      className={`h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 ${
-                        currentImage === img
-                          ? 'border-sky-500 dark:border-sky-400'
-                          : 'border-neutral-200 dark:border-neutral-800'
-                      }`}
-                    >
-                      <img
-                        src={img}
-                        alt={product.name}
-                        className="h-full w-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-6">
-              <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
-                {product.name}
-              </h1>
-
-              {product.short_description && (
-                <p className="text-base leading-relaxed text-neutral-600 dark:text-neutral-400">
-                  {product.short_description}
-                </p>
-              )}
-
-              {product.brand && (
-                <div>
-                  <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                    Marca:
-                  </span>{' '}
-                  <span className="text-sm text-neutral-600 dark:text-neutral-400">
-                    {product.brand}
-                  </span>
-                </div>
-              )}
-
-              {sizes.length > 0 && (
-                <div className="space-y-3">
-                  <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
-                    Escolha Tamanho
-                  </h2>
-                  <div className="flex flex-wrap gap-2">
-                    {sizes.map((size) => (
-                      <span
-                        key={size}
-                        className="inline-flex items-center rounded-full border border-neutral-300 bg-white px-3 py-1 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
-                      >
-                        {size}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            )}
           </div>
 
-          {product.description && (
-            <div className="mt-8 space-y-3">
-              <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">
-                Descrição Geral
-              </h2>
-              {/<[a-zA-Z][^>]*>/.test(product.description) ? (
-                <div
-                  className="text-base leading-relaxed text-neutral-700 dark:text-neutral-300 [&_a]:text-sky-600 [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:pl-4 [&_blockquote]:text-neutral-500 [&_em]:italic [&_h1]:text-xl [&_h2]:text-lg [&_h3]:text-base [&_img]:my-2 [&_img]:max-w-full [&_img]:rounded-lg [&_li]:mt-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-3 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5"
-                  dangerouslySetInnerHTML={{ __html: product.description }}
-                />
-              ) : (
-                <p className="whitespace-pre-wrap text-base text-neutral-700 dark:text-neutral-300">
-                  {product.description}
-                </p>
-              )}
+          {galleryImages.length > 1 && (
+            <div
+              className="flex gap-2 overflow-x-auto pb-1"
+              role="group"
+              aria-label="Imagens do produto"
+            >
+              {galleryImages.map((img) => {
+                const isSelected = currentImage === img
+                return (
+                  <button
+                    key={img}
+                    type="button"
+                    onClick={() => {
+                      setSelectedImage({ productId, image: img })
+                      setMainImageError(false)
+                    }}
+                    aria-pressed={isSelected}
+                    aria-label={`Ver imagem de ${product.name}`}
+                    className={`focus-ring h-20 w-20 flex-shrink-0 overflow-hidden rounded-button border-2 transition-colors ${
+                      isSelected
+                        ? 'border-sky-600 dark:border-sky-400'
+                        : 'border-neutral-200 hover:border-neutral-400 dark:border-neutral-700 dark:hover:border-neutral-500'
+                    }`}
+                  >
+                    <img
+                      src={img}
+                      alt=""
+                      aria-hidden="true"
+                      width={80}
+                      height={80}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover"
+                    />
+                  </button>
+                )
+              })}
             </div>
           )}
         </div>
-      </main>
+
+        <div className="min-w-0 space-y-5">
+          <div>
+            <Link
+              to={categoryPath(getCategoryByName(product.category) ?? product.category)}
+              className="focus-ring inline-flex min-h-11 items-center rounded-button text-label font-medium uppercase tracking-wide text-sky-700 transition-colors hover:text-sky-800 dark:text-sky-300 dark:hover:text-sky-200"
+            >
+              {product.category}
+              {product.subcategory ? ` · ${product.subcategory}` : ''}
+            </Link>
+            <h1 className="mt-2 line-clamp-3 text-h1 font-semibold leading-[1.1] tracking-[-0.02em] text-neutral-900 dark:text-white md:line-clamp-2">
+              {product.name}
+            </h1>
+          </div>
+
+          {product.short_description ? (
+            <p className="max-w-2xl text-body-lg leading-relaxed text-neutral-600 dark:text-neutral-300">
+              {product.short_description}
+            </p>
+          ) : null}
+
+          <ProductPrice
+            price={product.price}
+            className="text-h3 font-semibold text-neutral-900 dark:text-white"
+          />
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <a
+              href={consultHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-button bg-sky-700 px-5 text-body font-medium text-white transition-colors hover:bg-sky-800 dark:bg-sky-300 dark:text-neutral-950 dark:hover:bg-sky-200"
+            >
+              <Icon name="phone" className="h-5 w-5" />
+              Consultar este produto
+            </a>
+          </div>
+
+          {technicalSpecs.length > 0 && (
+            <section aria-labelledby="especificacoes-titulo">
+              <h2
+                id="especificacoes-titulo"
+                className="text-h3 font-semibold leading-[1.1] tracking-[-0.02em] text-neutral-900 dark:text-white"
+              >
+                Especificações
+              </h2>
+              <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {technicalSpecs.map((spec, index) => (
+                  <li
+                    key={`${spec.property}-${index}`}
+                    className="rounded-button border border-neutral-200 bg-neutral-50 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-800/50"
+                  >
+                    <p className="text-label font-medium text-neutral-500 dark:text-neutral-400">
+                      {spec.property}
+                    </p>
+                    <p className="mt-0.5 text-body font-medium text-neutral-900 dark:text-white">
+                      {spec.value}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </div>
+      </div>
+
+      {product.description ? (
+        <section aria-labelledby="descricao-titulo" className="mt-10 max-w-3xl">
+          <h2
+            id="descricao-titulo"
+            className="text-h3 font-semibold leading-[1.1] tracking-[-0.02em] text-neutral-900 dark:text-white"
+          >
+            Descrição
+          </h2>
+          {/<[a-zA-Z][^>]*>/.test(product.description) ? (
+            <div
+              className="prose mt-4 max-w-none dark:prose-invert [&_img]:max-w-full [&_img]:rounded-lg"
+              dangerouslySetInnerHTML={{ __html: product.description }}
+            />
+          ) : (
+            <p className="mt-4 whitespace-pre-wrap text-body leading-relaxed text-neutral-700 dark:text-neutral-300">
+              {product.description}
+            </p>
+          )}
+        </section>
+      ) : null}
+
+      {relatedProducts.length > 0 && (
+        <section aria-labelledby="relacionados-titulo" className="mt-16 border-t border-neutral-200 pt-12 dark:border-neutral-800">
+          <h2
+            id="relacionados-titulo"
+            className="text-h2 font-semibold leading-[1.1] tracking-[-0.02em] text-neutral-900 dark:text-white"
+          >
+            Produtos relacionados
+          </h2>
+          <p className="mt-2 text-body text-neutral-600 dark:text-neutral-300">
+            Mais opções na categoria {product.category}.
+          </p>
+          <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+            {relatedProducts.map((item) => (
+              <ProductCard key={item.id} product={item} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {zoomImage ? (
+        <ImageZoomDialog
+          src={zoomImage}
+          alt={product.name}
+          onClose={() => setZoomImage(null)}
+        />
+      ) : null}
     </div>
   )
 }

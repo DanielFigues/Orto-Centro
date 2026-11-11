@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 require __DIR__ . '/database.php';
 
-const API_TOKEN = 'senha123';
-
 header('Content-Type: application/json');
 
 $allowedOrigin = 'http://localhost:5173';
@@ -36,7 +34,11 @@ function fail(int $status, string $message): never
 
 function bearer_or_basic_ok(): bool
 {
-    $token = getenv('API_TOKEN') ?: API_TOKEN;
+    $token = getenv('API_TOKEN');
+    if ($token === false || trim($token) === '') {
+        return false;
+    }
+
     $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
 
     if (preg_match('/^Bearer\s+(.+)$/i', $auth, $m) === 1) {

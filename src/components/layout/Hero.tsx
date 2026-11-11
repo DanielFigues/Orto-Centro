@@ -1,136 +1,67 @@
-﻿import { useState, type ReactNode } from 'react'
-import { useTheme } from '../../hooks/useTheme'
-import { heroProducts } from '../../data/products'
-import type { Product } from '../../types/product'
-import GridMotion from '../bits/GridMotion'
-import SpecularButton from '../bits/SpecularButton'
-import SplitText from '../bits/SplitText'
+﻿import SplitText from '../bits/SplitText'
 import { Icon } from '../ui/Icon'
 
-function HeroTile({ product }: { product: Product }) {
-  const [hasImageError, setHasImageError] = useState(false)
-
-  if (product.image_url === '' || hasImageError) {
-    return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-1.5 p-2">
-        <Icon name="tools" className="h-6 w-6 text-sky-600 dark:text-sky-400" />
-        <span className="line-clamp-1 max-w-full text-xs font-medium text-neutral-700 dark:text-neutral-300">
-          {product.name}
-        </span>
-      </div>
-    )
-  }
-
-  return (
-    <img
-      src={product.image_url}
-      alt={product.name}
-      loading="lazy"
-      decoding="async"
-      onError={() => setHasImageError(true)}
-      className="h-full w-full object-cover"
-    />
-  )
-}
-
-function buildGridItems(): ReactNode[] {
-  const tiles = heroProducts.map((product) => <HeroTile key={product.id} product={product} />)
-
-  return Array.from({ length: 28 }, (_, index) => tiles[index % tiles.length])
-}
-
 export function Hero() {
-  const { theme } = useTheme()
-  const gradientColor =
-    theme === 'dark' ? 'rgba(56, 189, 248, 0.15)' : 'rgba(56, 189, 248, 0.25)'
-
   return (
     <section
       id="inicio"
-      className="relative flex min-h-svh items-center overflow-hidden scroll-mt-40"
+      className="relative isolate flex min-h-svh flex-col overflow-hidden bg-cover bg-center md:bg-fixed"
+      style={{ backgroundImage: 'url(/acessibilidade.png)' }}
     >
-      <div className="absolute inset-0 isolate" aria-hidden="true">
-        <GridMotion items={buildGridItems()} gradientColor={gradientColor} />
-      </div>
       <div
-        className="absolute inset-0 bg-white/50 backdrop-blur-sm dark:bg-black/70"
         aria-hidden="true"
+        className="absolute inset-0 z-0 bg-black/55"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 bottom-0 z-0 h-3/4 bg-gradient-to-t from-black/90 via-black/45 to-transparent"
       />
 
-      <div className="relative z-10 mx-auto w-full px-4 py-20 sm:px-6">
-        <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
-          <h1 className="flex flex-wrap items-baseline justify-center gap-x-3">
-            <SplitText
-              text="Orto"
-              tag="span"
-              className="text-6xl font-bold leading-none tracking-tight text-blue-800 sm:text-8xl dark:text-blue-400"
-              splitType="words, chars"
-              duration={0.9}
-              delay={45}
-              from={{ opacity: 0, y: 40 }}
-              to={{ opacity: 1, y: 0 }}
-            />
-            <SplitText
-              text="Centro"
-              tag="span"
-              className="text-6xl font-bold leading-none tracking-tight text-green-600 sm:text-8xl dark:text-green-500"
-              splitType="words, chars"
-              duration={0.9}
-              delay={120}
-              from={{ opacity: 0, y: 40 }}
-              to={{ opacity: 1, y: 0 }}
-            />
-          </h1>
-          <p className="mt-6 max-w-xl text-lg text-slate-800 dark:text-slate-200">
+      <div className="container relative z-10 flex flex-1 items-center justify-center pb-10 pt-36 sm:pt-32 lg:pt-24">
+        <div className="mx-auto flex w-full max-w-4xl flex-col items-center text-center">
+          <div className="flex gap-4 text-5xl font-black leading-[1.1] tracking-[-0.02em] sm:text-6xl md:text-8xl">
+            <div className="text-blue-500">
+              <SplitText
+                text="Orto"
+                tag="span"
+                splitType="chars"
+                duration={0.5}
+                delay={25}
+                from={{ opacity: 0, y: 24, filter: 'blur(6px)' }}
+                to={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              />
+            </div>
+            <div className="text-green-500">
+              <SplitText
+                text="Centro"
+                tag="span"
+                splitType="chars"
+                duration={0.5}
+                delay={25}
+                from={{ opacity: 0, y: 24, filter: 'blur(6px)' }}
+                to={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              />
+            </div>
+          </div>
+
+          <p className="mt-6 max-w-[60ch] text-body font-medium uppercase tracking-widest text-white motion-safe:animate-hero-subtitle sm:mt-7 sm:text-body-lg">
             Produtos de apoio e acessibilidade para o seu dia a dia
           </p>
-          <p className="mt-2 max-w-xl text-slate-800 dark:text-slate-200">
-            Cadeiras de rodas, andadores, auxiliares de higiene e itens de apoio
-            cotidiano. Navegue pelas categorias e encontre o produto ideal para
-            cada necessidade.
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <SpecularButton
-              href="#catalogo"
-              size="md"
-              tint="#0284c7"
-              tintOpacity={1}
-              baseColor="#ffffff"
-              lineColor="#0f172a"
-              textColor="#0f172a"
-              radius={14}
-            >
-              <span className="inline-flex items-center gap-2">
-                Ver produtos
-                <Icon name="arrow-right" className="h-4 w-4" />
-              </span>
-            </SpecularButton>
-            <SpecularButton
-              href="#contato"
-              size="md"
-              tint="#ffffff"
-              tintOpacity={1}
-              baseColor="#f8fafc"
-              lineColor="#0f172a"
-              textColor="#0f172a"
-              radius={14}
-            >
-              <span className="inline-flex items-center gap-2">
-                <Icon name="phone" className="h-4 w-4 text-sky-700" />
-                Falar conosco
-              </span>
-            </SpecularButton>
-          </div>
         </div>
       </div>
 
-      <a
-        href="#catalogo"
-        className="absolute bottom-6 left-1/2 z-20 -translate-x-1/2 text-neutral-500 transition-colors hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
-        aria-label="Ver produtos"
-      >
-        <Icon name="chevron-down" className="h-8 w-8 animate-bounce text-sky-600 dark:text-sky-400" />
-      </a>
+      <div className="relative z-10 flex justify-center pb-8">
+        <a
+          href="#categorias"
+          className="focus-ring group inline-flex min-h-11 items-center gap-2 rounded-pill px-4 text-label font-medium uppercase tracking-widest text-white/90 transition-colors hover:text-white"
+        >
+          Ver categorias
+          <Icon
+            name="chevron-down"
+            className="h-4 w-4 motion-safe:animate-hero-cue"
+          />
+        </a>
+      </div>
     </section>
   )
 }

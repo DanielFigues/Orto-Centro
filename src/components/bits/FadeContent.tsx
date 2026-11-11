@@ -17,17 +17,19 @@ interface FadeContentProps extends React.HTMLAttributes<HTMLDivElement> {
   delay?: number
   threshold?: number
   initialOpacity?: number
+  y?: number
   onComplete?: () => void
 }
 
 const FadeContent: React.FC<FadeContentProps> = ({
   children,
   blur = false,
-  duration = 1000,
+  duration = 400,
   ease = 'power2.out',
   delay = 0,
   threshold = 0.1,
   initialOpacity = 0,
+  y = 16,
   onComplete,
   className = '',
   ...props
@@ -39,7 +41,7 @@ const FadeContent: React.FC<FadeContentProps> = ({
     if (!el) return
 
     if (prefersReducedMotion()) {
-      gsap.set(el, { autoAlpha: 1 })
+      gsap.set(el, { autoAlpha: 1, y: 0 })
       onComplete?.()
       return
     }
@@ -49,6 +51,7 @@ const FadeContent: React.FC<FadeContentProps> = ({
 
     gsap.set(el, {
       autoAlpha: initialOpacity,
+      y,
       filter: blur ? 'blur(10px)' : 'blur(0px)',
       willChange: 'opacity, filter, transform',
     })
@@ -61,6 +64,7 @@ const FadeContent: React.FC<FadeContentProps> = ({
 
     tl.to(el, {
       autoAlpha: 1,
+      y: 0,
       filter: 'blur(0px)',
       duration: getSeconds(duration),
       ease,
@@ -78,7 +82,7 @@ const FadeContent: React.FC<FadeContentProps> = ({
       tl.kill()
       gsap.killTweensOf(el)
     }
-  }, [blur, delay, duration, ease, initialOpacity, onComplete, threshold])
+  }, [blur, delay, duration, ease, initialOpacity, onComplete, threshold, y])
 
   return (
     <div ref={ref} className={className} {...props}>
