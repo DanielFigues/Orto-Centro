@@ -9,8 +9,8 @@ export interface StoreInfo {
   siteUrl: string
 }
 
-// TODO: confirmar o número do WhatsApp com o cliente (dígito a dígito, com DDI+DDD).
-const WHATSAPP_NUMBER = '5538992401409'
+// Número oficial da loja para consultas de disponibilidade (DDI+DDD+número).
+const WHATSAPP_NUMBER = '553892401409'
 
 function resolveSiteUrl(): string {
   const envUrl = (import.meta.env?.VITE_SITE_URL as string | undefined)?.trim()
