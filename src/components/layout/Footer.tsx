@@ -34,7 +34,7 @@ export function Footer() {
           <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-900 dark:text-white">
             Categorias
           </h3>
-          <ul className="mt-4 space-y-1 text-sm">
+          <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
             {categories.map((category) => (
               <li key={category.id}>
                 <Link to={categoryPath(category)} className={linkClass}>

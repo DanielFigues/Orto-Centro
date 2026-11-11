@@ -1,0 +1,4 @@
+# Bloqueia acesso web direto ao banco de dados SQLite e demais arquivos de dados.
+# Necessário para Apache (AllowOverride All). Para Nginx, use a regra equivalente
+# em location (ver README, seção Database).
+Require all denied

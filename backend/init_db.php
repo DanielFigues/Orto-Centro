@@ -4,52 +4,11 @@ declare(strict_types=1);
 
 require __DIR__ . '/database.php';
 
-function migrate(PDO $pdo): void
-{
-    $pdo->exec(
-        'CREATE TABLE IF NOT EXISTS products (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            category TEXT NOT NULL,
-            subcategory TEXT NOT NULL DEFAULT \'\',
-            image_url TEXT NOT NULL DEFAULT \'\',
-            image_url_2 TEXT DEFAULT \'\',
-            image_url_3 TEXT DEFAULT \'\',
-            description TEXT DEFAULT \'\',
-            short_description TEXT DEFAULT \'\',
-            technical_specs TEXT DEFAULT \'\',
-            brand TEXT DEFAULT \'\',
-            sizes TEXT DEFAULT \'\',
-            is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1))
-        );'
-    );
-
-    $columns = $pdo->query('PRAGMA table_info(products)')->fetchAll(PDO::FETCH_COLUMN, 1);
-    if (!in_array('subcategory', $columns, true)) {
-        $pdo->exec("ALTER TABLE products ADD COLUMN subcategory TEXT NOT NULL DEFAULT ''");
-    }
-    if (!in_array('description', $columns, true)) {
-        $pdo->exec("ALTER TABLE products ADD COLUMN description TEXT DEFAULT ''");
-    }
-    if (!in_array('short_description', $columns, true)) {
-        $pdo->exec("ALTER TABLE products ADD COLUMN short_description TEXT DEFAULT ''");
-    }
-    if (!in_array('technical_specs', $columns, true)) {
-        $pdo->exec("ALTER TABLE products ADD COLUMN technical_specs TEXT DEFAULT ''");
-    }
-    if (!in_array('brand', $columns, true)) {
-        $pdo->exec("ALTER TABLE products ADD COLUMN brand TEXT DEFAULT ''");
-    }
-    if (!in_array('sizes', $columns, true)) {
-        $pdo->exec("ALTER TABLE products ADD COLUMN sizes TEXT DEFAULT ''");
-    }
-    if (!in_array('image_url_2', $columns, true)) {
-        $pdo->exec("ALTER TABLE products ADD COLUMN image_url_2 TEXT DEFAULT ''");
-    }
-    if (!in_array('image_url_3', $columns, true)) {
-        $pdo->exec("ALTER TABLE products ADD COLUMN image_url_3 TEXT DEFAULT ''");
-    }
-}
+/**
+ * Cria/abre o banco (as migrações em backend/migrations rodam automaticamente
+ * via db()) e popula o catálogo inicial apenas se não houver produtos.
+ * Não altera dados existentes.
+ */
 
 function seed(PDO $pdo): void
 {
@@ -99,7 +58,6 @@ function seed(PDO $pdo): void
 }
 
 $pdo = db();
-migrate($pdo);
 seed($pdo);
 
 echo 'Database initialized at ' . db_path() . PHP_EOL;

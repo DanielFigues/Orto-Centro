@@ -29,31 +29,31 @@ function CategoryMenuItem({
   visible: boolean
   isActive: boolean
 }) {
+  const baseClass = !visible
+    ? 'text-neutral-900 hover:text-neutral-700 dark:text-neutral-100 dark:hover:text-white'
+    : 'text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white'
+
   return (
     <div className="group relative flex-none">
       <Link
         to={categoryPath(category)}
         aria-haspopup={category.subcategories.length > 0 ? 'menu' : undefined}
-        className={`inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 ${
-          isActive
-            ? 'text-sky-700 dark:text-sky-300'
-            : visible
-              ? 'text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white'
-              : 'text-slate-800 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white'
-        }`}
+    className={`flex items-center gap-1 whitespace-nowrap rounded-lg py-2 text-[16px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 ${
+     isActive ? 'text-sky-700 dark:text-sky-300' : baseClass
+   }`}
       >
         <span>{category.name}</span>
         {category.subcategories.length > 0 && (
           <Icon
             name="chevron-down"
-            className="h-3.5 w-3.5 opacity-60 transition-transform duration-200 group-hover:rotate-180"
+            className="h-3.5 w-3.5 opacity-80 transition-transform duration-200 group-hover:rotate-180"
           />
         )}
       </Link>
 
       {category.subcategories.length > 0 && (
         <div className="invisible absolute left-0 top-full z-50 translate-y-1 pt-2 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
-          <div className="max-h-[70svh] w-64 overflow-y-auto rounded-md border border-neutral-200 bg-white p-1.5 shadow-lg dark:border-neutral-800 dark:bg-slate-900">
+          <div className="header-glass-panel max-h-[70svh] w-64 overflow-y-auto rounded-md border border-neutral-200 p-1.5 shadow-lg dark:border-neutral-800">
             {category.subcategories.map((subcategory) => (
               <Link
                 key={subcategory.slug}
@@ -209,7 +209,7 @@ function MobileMenu({
 export function Header() {
   const { theme, toggleTheme } = useTheme()
   const { pathname } = useLocation()
-  const [visible, setVisible] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [visibleCount, setVisibleCount] = useState(categories.length)
@@ -225,7 +225,7 @@ export function Header() {
 
   useEffect(() => {
     const onScroll = () => {
-      setVisible(window.scrollY > 0)
+      setScrolled(window.scrollY > 8)
     }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -267,6 +267,15 @@ export function Header() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
+  const atTop = !scrolled
+  const isHome = pathname === '/'
+  const overHero = atTop && isHome
+  const headerLinkClass = overHero
+    ? 'text-neutral-900 hover:text-neutral-700 dark:text-neutral-100 dark:hover:text-white'
+    : 'text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white'
+  const headerIconClass = overHero
+    ? 'text-neutral-900 hover:bg-black/5 hover:text-neutral-700 dark:text-neutral-100 dark:hover:bg-white/10 dark:hover:text-white'
+    : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white'
   useEffect(() => {
     if (!menuOpen) return
     const mq = window.matchMedia('(min-width: 1024px)')
@@ -327,22 +336,20 @@ export function Header() {
       window.removeEventListener('resize', update)
     }
   }, [])
-
-  const iconBtnClass = `focus-ring inline-flex h-11 w-11 items-center justify-center rounded-button transition-colors ${
-    visible
-      ? 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white'
-      : 'text-slate-800 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white'
-  }`
-
+     const iconBtnClass = `focus-ring inline-flex h-11 w-11 items-center justify-center rounded-button transition-colors ${headerIconClass}`
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
-          visible
-            ? 'bg-white shadow-md dark:bg-neutral-800'
-            : 'bg-transparent shadow-none'
+        className={`sticky top-0 z-50 transition-colors duration-300 ${
+          overHero ? 'bg-transparent' : 'header-glass'
         }`}
       >
+   <div
+     className={`border-b transition-colors duration-300 ${
+       overHero ? 'border-transparent' : 'border-neutral-200 dark:border-neutral-800'
+     }`}
+   >
+     <div className="container flex h-14 items-center justify-between gap-2 lg:h-[var(--header-height)] lg:gap-4">
         <div className="border-b border-neutral-200/70 dark:border-neutral-800/70">
           <div className="container flex h-14 items-center justify-between gap-2 lg:h-[var(--header-height)] lg:gap-4">
             <Link
@@ -365,38 +372,34 @@ export function Header() {
               className="relative hidden min-w-0 flex-1 lg:flex lg:items-center lg:justify-center"
             >
               <nav
-                className="flex min-w-0 items-center justify-center gap-1"
+                className="flex min-w-0 items-center justify-center gap-[28px]"
                 aria-label="Categorias de produtos"
               >
                 {primaryCategories.map((category) => (
                   <CategoryMenuItem
                     key={category.id}
                     category={category}
-                    visible={visible}
+                    visible={!overHero}
                     isActive={pathname === categoryPath(category)}
                   />
                 ))}
 
                 {moreCategories.length > 0 && (
-                  <div className="group relative flex-none">
+                                    <div className="group relative flex-none">
                     <button
                       type="button"
-                      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 ${
-                        visible
-                          ? 'text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white'
-                          : 'text-slate-800 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white'
-                      }`}
+                      className={`flex items-center gap-1 whitespace-nowrap rounded-lg py-2 text-[16px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 ${headerLinkClass}`}
                       aria-haspopup="menu"
                     >
                       <span>Mais</span>
                       <Icon
                         name="chevron-down"
-                        className="h-3.5 w-3.5 opacity-60 transition-transform duration-200 group-hover:rotate-180"
+                        className="h-3.5 w-3.5 opacity-80 transition-transform duration-200 group-hover:rotate-180"
                       />
                     </button>
 
                     <div className="invisible absolute right-0 top-full z-50 translate-y-1 pt-2 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
-                      <div className="max-h-[70svh] w-80 overflow-y-auto rounded-md border border-neutral-200 bg-white p-2 shadow-lg dark:border-neutral-800 dark:bg-slate-900">
+                      <div className="header-glass-panel max-h-[70svh] w-80 overflow-y-auto rounded-md border border-neutral-200 p-2 shadow-lg dark:border-neutral-800">
                         {moreCategories.map((category) => (
                           <div key={category.id} className="rounded-md p-1">
                             <Link
@@ -471,7 +474,7 @@ export function Header() {
                 aria-label="Buscar produtos"
                 aria-haspopup="dialog"
                 aria-keyshortcuts="/ Control+K Meta+K"
-                className={iconBtnClass}
+                className={`focus-ring inline-flex h-11 w-11 items-center justify-center rounded-button transition-colors ${headerIconClass}`}
               >
                 <Icon name="search" className="h-5 w-5" />
               </button>
@@ -480,7 +483,7 @@ export function Header() {
                 type="button"
                 onClick={toggleTheme}
                 aria-label={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}
-                className={iconBtnClass}
+                className={`focus-ring inline-flex h-11 w-11 items-center justify-center rounded-button transition-colors ${headerIconClass}`}
               >
                 {theme === 'dark' ? <Icon name="sun" /> : <Icon name="moon" />}
               </button>

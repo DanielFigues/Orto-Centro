@@ -19,11 +19,14 @@ export interface ProductInput {
   image_url?: string | File
   image_url_2?: string | File
   image_url_3?: string | File
+  image_url_4?: string | File
+  image_url_5?: string | File
   description?: string
   short_description?: string
   technical_specs?: string
   brand?: string
   sizes?: string
+  price?: number | null
   is_active?: boolean
 }
 
@@ -68,6 +71,8 @@ function parseProduct(value: unknown): Product | null {
     image_url: toText(value.image_url),
     image_url_2: toText(value.image_url_2),
     image_url_3: toText(value.image_url_3),
+    image_url_4: toText(value.image_url_4),
+    image_url_5: toText(value.image_url_5),
     description: toText(value.description),
     short_description: toText(value.short_description),
     technical_specs: toText(value.technical_specs),

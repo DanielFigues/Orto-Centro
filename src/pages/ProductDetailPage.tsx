@@ -2,11 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { ProductCard } from '../components/catalog/ProductCard'
-import { ProductPrice } from '../components/catalog/ProductPrice'
 import { Icon } from '../components/ui/Icon'
 import { useCatalog } from '../context/catalogContextValue'
 import { categoryPath, getCategoryByName } from '../data/categories'
-import { buildWhatsAppUrl } from '../data/store'
+import { formatPrice } from '../lib/formatPrice'
 
 interface ProductDetailPageProps {
   productId: number
@@ -165,9 +164,13 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
 
   const galleryImages = useMemo(() => {
     if (!product) return []
-    return [product.image_url, product.image_url_2, product.image_url_3].filter(
-      (img): img is string => typeof img === 'string' && img.trim() !== '',
-    )
+    return [
+      product.image_url,
+      product.image_url_2,
+      product.image_url_3,
+      product.image_url_4,
+      product.image_url_5,
+    ].filter((img): img is string => typeof img === 'string' && img.trim() !== '')
   }, [product])
 
   const currentImage =
@@ -234,13 +237,6 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
     )
   }
 
-  const productUrl =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/produto/${product.id}`
-      : `/produto/${product.id}`
-  const consultHref = buildWhatsAppUrl(
-    `Olá! Gostaria de consultar este produto: ${product.name}\n${productUrl}`,
-  )
   const showMainImage = currentImage !== '' && !mainImageError
 
   return (
@@ -262,15 +258,15 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
             </Link>
           </li>
           <li aria-hidden="true">/</li>
-          <li className="font-medium text-neutral-900 dark:text-white">
+          <li className="min-w-0 break-words font-medium text-neutral-900 dark:text-white [overflow-wrap:anywhere]">
             {product.name}
           </li>
         </ol>
       </nav>
 
       <div className="mt-6 grid min-w-0 gap-8 lg:grid-cols-2 lg:gap-10">
-        <div className="min-w-0 space-y-4">
-          <div className="relative aspect-square overflow-hidden rounded-card-lg border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-800">
+        <div className="min-w-0 max-w-full space-y-4">
+          <div className="relative aspect-square w-full max-w-full overflow-hidden rounded-card-lg border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-800">
             {showMainImage ? (
               <button
                 type="button"
@@ -360,41 +356,30 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
             </p>
           ) : null}
 
-          <ProductPrice
-            price={product.price}
-            className="text-h3 font-semibold text-neutral-900 dark:text-white"
-          />
-
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <a
-              href={consultHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-button bg-sky-700 px-5 text-body font-medium text-white transition-colors hover:bg-sky-800 dark:bg-sky-300 dark:text-neutral-950 dark:hover:bg-sky-200"
-            >
-              <Icon name="phone" className="h-5 w-5" />
-              Consultar este produto
-            </a>
-          </div>
+          {formatPrice(product.price) ? (
+            <p className="text-[30px] font-semibold leading-[1.1] tracking-[-0.02em] text-neutral-900 dark:text-white">
+              {formatPrice(product.price)}
+            </p>
+          ) : null}
 
           {technicalSpecs.length > 0 && (
-            <section aria-labelledby="especificacoes-titulo">
+            <section aria-labelledby="especificacoes-titulo" className="min-w-0">
               <h2
                 id="especificacoes-titulo"
                 className="text-h3 font-semibold leading-[1.1] tracking-[-0.02em] text-neutral-900 dark:text-white"
               >
                 Especificações
               </h2>
-              <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <ul className="mt-3 grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
                 {technicalSpecs.map((spec, index) => (
                   <li
                     key={`${spec.property}-${index}`}
-                    className="rounded-button border border-neutral-200 bg-neutral-50 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-800/50"
+                    className="min-w-0 rounded-button border border-neutral-200 bg-neutral-50 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-800/50"
                   >
                     <p className="text-label font-medium text-neutral-500 dark:text-neutral-400">
                       {spec.property}
                     </p>
-                    <p className="mt-0.5 text-body font-medium text-neutral-900 dark:text-white">
+                    <p className="mt-0.5 break-words text-body font-medium text-neutral-900 [overflow-wrap:anywhere] dark:text-white">
                       {spec.value}
                     </p>
                   </li>
@@ -406,7 +391,10 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
       </div>
 
       {product.description ? (
-        <section aria-labelledby="descricao-titulo" className="mt-10 max-w-3xl">
+        <section
+          aria-labelledby="descricao-titulo"
+          className="mt-10 min-w-0 max-w-full sm:max-w-3xl [overflow-wrap:anywhere]"
+        >
           <h2
             id="descricao-titulo"
             className="text-h3 font-semibold leading-[1.1] tracking-[-0.02em] text-neutral-900 dark:text-white"
@@ -415,11 +403,11 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
           </h2>
           {/<[a-zA-Z][^>]*>/.test(product.description) ? (
             <div
-              className="prose mt-4 max-w-none dark:prose-invert [&_img]:max-w-full [&_img]:rounded-lg"
+              className="prose mt-4 max-w-none break-words [overflow-wrap:anywhere] dark:prose-invert [&_img]:h-auto [&_img]:max-w-full [&_img]:rounded-lg [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto"
               dangerouslySetInnerHTML={{ __html: product.description }}
             />
           ) : (
-            <p className="mt-4 whitespace-pre-wrap text-body leading-relaxed text-neutral-700 dark:text-neutral-300">
+            <p className="mt-4 whitespace-pre-wrap break-words text-body leading-relaxed text-neutral-700 [overflow-wrap:anywhere] dark:text-neutral-300">
               {product.description}
             </p>
           )}
@@ -437,7 +425,7 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
           <p className="mt-2 text-body text-neutral-600 dark:text-neutral-300">
             Mais opções na categoria {product.category}.
           </p>
-          <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <div className="mt-6 grid min-w-0 grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
             {relatedProducts.map((item) => (
               <ProductCard key={item.id} product={item} />
             ))}

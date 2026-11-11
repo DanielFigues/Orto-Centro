@@ -24,7 +24,7 @@ interface FadeContentProps extends React.HTMLAttributes<HTMLDivElement> {
 const FadeContent: React.FC<FadeContentProps> = ({
   children,
   blur = false,
-  duration = 400,
+  duration = 900,
   ease = 'power2.out',
   delay = 0,
   threshold = 0.1,

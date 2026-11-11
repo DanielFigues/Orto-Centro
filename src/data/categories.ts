@@ -1,6 +1,7 @@
 export interface Subcategory {
   name: string
   slug: string
+  label?: string
 }
 
 export interface Category {
@@ -24,9 +25,9 @@ export const categories: Category[] = [
     imageAlt: 'Cadeira de rodas e produtos de mobilidade',
     imageIcon: 'wheelchair',
     subcategories: [
-      { name: 'Cadeiras de Rodas', slug: 'cadeiras-de-rodas' },
+      { name: 'Cadeiras de Rodas', slug: 'cadeiras-de-rodas', label: 'Cadeiras' },
       { name: 'Andadores', slug: 'andadores' },
-      { name: 'Muletas e Bengalas', slug: 'muletas-e-bengalas' },
+      { name: 'Muletas e Bengalas', slug: 'muletas-e-bengalas', label: 'Muletas' },
       { name: 'Bancos', slug: 'bancos' },
     ],
   },
@@ -54,8 +55,8 @@ export const categories: Category[] = [
     imageAlt: 'Almofada postural e apoio para o corpo',
     imageIcon: 'cushion',
     subcategories: [
-      { name: 'Almofadas de Espuma', slug: 'almofadas-de-espuma' },
-      { name: 'Almofadas de Gel e Silicone', slug: 'almofadas-de-gel-e-silicone' },
+      { name: 'Almofadas de Espuma', slug: 'almofadas-de-espuma', label: 'Espuma' },
+      { name: 'Almofadas de Gel e Silicone', slug: 'almofadas-de-gel-e-silicone', label: 'Gel e Silicone' },
       { name: 'Colchonetes', slug: 'colchonetes' },
     ],
   },
@@ -68,8 +69,8 @@ export const categories: Category[] = [
     imageAlt: 'Cadeira de banho e itens de higiene',
     imageIcon: 'shower',
     subcategories: [
-      { name: 'Barras de Segurança', slug: 'barras-de-seguranca' },
-      { name: 'Assentos e Cadeiras de Banho', slug: 'assentos-e-cadeiras-de-banho' },
+      { name: 'Barras de Segurança', slug: 'barras-de-seguranca', label: 'Barras' },
+      { name: 'Assentos e Cadeiras de Banho', slug: 'assentos-e-cadeiras-de-banho', label: 'Assentos' },
     ],
   },
   {
