@@ -63,34 +63,21 @@ export function CategoryCard({ category }: CategoryCardProps) {
         </h3>
 
         {visibleSubcategories.length > 0 ? (
-          <ul className="relative z-10 mt-4 flex max-h-[24px] flex-wrap gap-x-4 overflow-hidden">
-            {visibleSubcategories.map((subcategory) => (
-              <li key={subcategory.slug} className="shrink-0">
-                <Link
-                  to={categoryPathWithSubcategory(category, subcategory)}
-                  className="focus-ring block whitespace-nowrap text-[16px] font-medium leading-[1.5] text-neutral-600 underline-offset-4 transition-colors hover:text-neutral-900 hover:underline dark:text-neutral-400 dark:hover:text-white"
-                >
-                  {subcategory.label ?? subcategory.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        {category.subcategories.length > 0 ? (
           isDesktop ? (
-            <ul className="relative z-10 flex flex-wrap gap-x-5 gap-y-1">
-              {category.subcategories.map((subcategory) => (
-                <li key={subcategory.slug}>
+            <ul className="relative z-10 mt-4 flex max-h-[24px] flex-wrap gap-x-4 overflow-hidden">
+              {visibleSubcategories.map((subcategory) => (
+                <li key={subcategory.slug} className="shrink-0">
                   <Link
                     to={categoryPathWithSubcategory(category, subcategory)}
-                    className="focus-ring inline-flex min-h-7 items-center text-[1rem] leading-relaxed text-neutral-700 underline-offset-4 hover:underline [@media(pointer:coarse)]:min-h-11 dark:text-neutral-300"
+                    className="focus-ring block whitespace-nowrap text-[16px] font-medium leading-[1.5] text-neutral-600 underline-offset-4 transition-colors hover:text-neutral-900 hover:underline dark:text-neutral-400 dark:hover:text-white"
                   >
-                    {subcategory.name}
+                    {subcategory.label ?? subcategory.name}
                   </Link>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="overflow-hidden text-ellipsis whitespace-nowrap text-[1rem] leading-relaxed text-neutral-600 dark:text-neutral-400">
+            <p className="mt-4 overflow-hidden text-ellipsis whitespace-nowrap text-[16px] leading-[1.5] text-neutral-600 dark:text-neutral-400">
               {subcategoryText}
             </p>
           )

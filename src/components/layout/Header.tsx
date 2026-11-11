@@ -20,6 +20,8 @@ import { Icon } from '../ui/Icon'
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
 
+const NAV_GAP = 28
+
 function CategoryMenuItem({
   category,
   visible,
@@ -38,9 +40,9 @@ function CategoryMenuItem({
       <Link
         to={categoryPath(category)}
         aria-haspopup={category.subcategories.length > 0 ? 'menu' : undefined}
-    className={`flex items-center gap-1 whitespace-nowrap rounded-lg py-2 text-[16px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 ${
-     isActive ? 'text-sky-700 dark:text-sky-300' : baseClass
-   }`}
+        className={`flex items-center gap-1 whitespace-nowrap rounded-lg py-2 text-[16px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 ${
+          isActive ? 'text-sky-700 dark:text-sky-300' : baseClass
+        }`}
       >
         <span>{category.name}</span>
         {category.subcategories.length > 0 && (
@@ -267,15 +269,6 @@ export function Header() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
-  const atTop = !scrolled
-  const isHome = pathname === '/'
-  const overHero = atTop && isHome
-  const headerLinkClass = overHero
-    ? 'text-neutral-900 hover:text-neutral-700 dark:text-neutral-100 dark:hover:text-white'
-    : 'text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white'
-  const headerIconClass = overHero
-    ? 'text-neutral-900 hover:bg-black/5 hover:text-neutral-700 dark:text-neutral-100 dark:hover:bg-white/10 dark:hover:text-white'
-    : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white'
   useEffect(() => {
     if (!menuOpen) return
     const mq = window.matchMedia('(min-width: 1024px)')
@@ -300,7 +293,7 @@ export function Header() {
 
       const widths = itemRefs.current.map((el) => el?.offsetWidth ?? 0)
       const moreWidth = moreMeasureRef.current?.offsetWidth ?? 0
-      const gap = 4 // gap-1
+      const gap = NAV_GAP
       const totalWidth =
         widths.reduce((sum, w) => sum + w, 0) + Math.max(0, widths.length - 1) * gap
 
@@ -336,7 +329,18 @@ export function Header() {
       window.removeEventListener('resize', update)
     }
   }, [])
-     const iconBtnClass = `focus-ring inline-flex h-11 w-11 items-center justify-center rounded-button transition-colors ${headerIconClass}`
+
+  const atTop = !scrolled
+  const isHome = pathname === '/'
+  const overHero = atTop && isHome
+  const headerLinkClass = overHero
+    ? 'text-neutral-900 hover:text-neutral-700 dark:text-neutral-100 dark:hover:text-white'
+    : 'text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white'
+  const headerIconClass = overHero
+    ? 'text-neutral-900 hover:bg-black/5 hover:text-neutral-700 dark:text-neutral-100 dark:hover:bg-white/10 dark:hover:text-white'
+    : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white'
+  const iconBtnClass = `focus-ring inline-flex h-11 w-11 items-center justify-center rounded-button transition-colors ${headerIconClass}`
+
   return (
     <>
       <header
@@ -344,13 +348,13 @@ export function Header() {
           overHero ? 'bg-transparent' : 'header-glass'
         }`}
       >
-   <div
-     className={`border-b transition-colors duration-300 ${
-       overHero ? 'border-transparent' : 'border-neutral-200 dark:border-neutral-800'
-     }`}
-   >
-     <div className="container flex h-14 items-center justify-between gap-2 lg:h-[var(--header-height)] lg:gap-4">
-        <div className="border-b border-neutral-200/70 dark:border-neutral-800/70">
+        <div
+          className={`border-b transition-colors duration-300 ${
+            overHero
+              ? 'border-transparent'
+              : 'border-neutral-200 dark:border-neutral-800'
+          }`}
+        >
           <div className="container flex h-14 items-center justify-between gap-2 lg:h-[var(--header-height)] lg:gap-4">
             <Link
               to="/"
@@ -385,7 +389,7 @@ export function Header() {
                 ))}
 
                 {moreCategories.length > 0 && (
-                                    <div className="group relative flex-none">
+                  <div className="group relative flex-none">
                     <button
                       type="button"
                       className={`flex items-center gap-1 whitespace-nowrap rounded-lg py-2 text-[16px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 ${headerLinkClass}`}
@@ -432,11 +436,11 @@ export function Header() {
                 )}
               </nav>
 
-              {/* Measurement copy for priority+ nav (no hardcoded counts) */}
+              {/* Measurement copy for the priority+ nav (same sizes as the real items) */}
               <div
                 ref={measureRef}
                 aria-hidden="true"
-                className="pointer-events-none invisible absolute left-0 top-0 -z-10 flex items-center gap-1"
+                className="pointer-events-none invisible absolute left-0 top-0 -z-10 flex items-center gap-[28px]"
               >
                 {categories.map((category, index) => (
                   <div
@@ -446,7 +450,7 @@ export function Header() {
                     }}
                     className="flex-none"
                   >
-                    <div className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium">
+                    <div className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg py-2 text-[16px] font-medium">
                       <span>{category.name}</span>
                       {category.subcategories.length > 0 ? (
                         <Icon name="chevron-down" className="h-3.5 w-3.5" />
@@ -458,7 +462,7 @@ export function Header() {
                   ref={moreMeasureRef}
                   type="button"
                   tabIndex={-1}
-                  className="inline-flex flex-none items-center gap-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium"
+                  className="inline-flex flex-none items-center gap-1 whitespace-nowrap rounded-lg py-2 text-[16px] font-medium"
                 >
                   <span>Mais</span>
                   <Icon name="chevron-down" className="h-3.5 w-3.5" />
@@ -474,7 +478,7 @@ export function Header() {
                 aria-label="Buscar produtos"
                 aria-haspopup="dialog"
                 aria-keyshortcuts="/ Control+K Meta+K"
-                className={`focus-ring inline-flex h-11 w-11 items-center justify-center rounded-button transition-colors ${headerIconClass}`}
+                className={iconBtnClass}
               >
                 <Icon name="search" className="h-5 w-5" />
               </button>
@@ -483,7 +487,7 @@ export function Header() {
                 type="button"
                 onClick={toggleTheme}
                 aria-label={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}
-                className={`focus-ring inline-flex h-11 w-11 items-center justify-center rounded-button transition-colors ${headerIconClass}`}
+                className={iconBtnClass}
               >
                 {theme === 'dark' ? <Icon name="sun" /> : <Icon name="moon" />}
               </button>
