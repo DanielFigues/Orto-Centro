@@ -127,8 +127,31 @@ Orto-Centro/
 ## Content and data
 
 - Categories live in a single file in `src/data/`. The header menu, category rail, footer, search and filters all read from it, so adding or reordering a category is a one-file change.
-- Products are served by the PHP backend from the SQLite database. They include fields such as `name`, `category`, `subcategory`, `description`, `short_description`, `technical_specs` (stored as JSON), `brand`, `sizes`, and up to three image URLs (`image_url`, `image_url_2`, `image_url_3`). Images are uploaded to and served from the `public/uploads/` directory.
+- Products are served by the PHP backend from the SQLite database. They include fields such as `name`, `category`, `subcategory`, `description`, `short_description`, `technical_specs` (stored as JSON), `brand`, `sizes`, `price` (optional, nullable) and up to five image URLs (`image_url`, `image_url_2`, `image_url_3`, `image_url_4`, `image_url_5`). Images are uploaded to and served from the `public/uploads/` directory.
 - Images currently in the repository are placeholders and should be replaced before launch.
+
+## Database
+
+- Schema changes are **automatic and permanent**: no manual migration script is ever needed.
+- `backend/database.php` contains the connection (`db()`) and the migration runner. On the first connection of each request, it applies every pending migration from `backend/migrations/` **inside a single transaction** (a failure rolls everything back, so the database is never half-migrated) and records each applied migration in the `schema_migrations` table (`id`, `name`, `applied_at`). If everything is already applied, it does nothing.
+- A fresh, empty database ends up with the complete current schema automatically; an existing (old or already migrated) database is upgraded in place without data loss.
+- **How to add a new migration:** create a numbered file in `backend/migrations/`, e.g. `004_add_column_x.php`, with a higher number than the last existing one, returning a closure:
+
+  ```php
+  <?php
+  declare(strict_types=1);
+  return function (PDO $pdo): void {
+      // Idempotent, additive change, e.g.:
+      // $columns = $pdo->query('PRAGMA table_info(products)')->fetchAll(PDO::FETCH_COLUMN, 1);
+      // if (!in_array('column_x', $columns, true)) {
+      //     $pdo->exec("ALTER TABLE products ADD COLUMN column_x TEXT DEFAULT ''");
+      // }
+  };
+  ```
+
+  Files must match `NNN_name.php` and are applied in filename order. Keep migrations additive and idempotent (check `PRAGMA table_info` before `ALTER TABLE`), and never drop or modify existing data. After deploying the file, the next request applies it automatically — on production too.
+- The real database (`backend/data/catalog.sqlite`) is **not** in the repository: `backend/data/*.sqlite`, `*.sqlite3` and `*.db` are ignored by git. `backend/data/` (database) and `backend/uploads/` (uploads) are created automatically by the backend if missing.
+- `backend/data/` must not be web-accessible (the `.sqlite` file must not be downloadable by URL). It ships an `.htaccess` with `Require all denied` for Apache (requires `AllowOverride All`). For Nginx, add an equivalent rule, e.g. `location /backend/data/ { deny all; return 404; }`. Best practice: keep the whole `backend/` directory outside the web root and only expose `index.php` (and `/uploads/` for images).
 
 ## Accessibility
 

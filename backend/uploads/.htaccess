@@ -1,0 +1,6 @@
+# Bloqueia execução de scripts no diretório de uploads.
+# As imagens continuam acessíveis normalmente; apenas arquivos executáveis não rodam.
+# Necessário para Apache (AllowOverride All).
+<FilesMatch "\.(php|phtml|phar|cgi|pl|py|sh)$">
+    Require all denied
+</FilesMatch>
