@@ -15,18 +15,51 @@ import { useCatalog } from '../context/catalogContextValue'
 import { categories } from '../data/categories'
 import { homeBenefits } from '../data/home'
 import { Icon } from '../components/ui/Icon'
+import { useMediaQuery } from '../hooks/useMediaQuery'
 
 const FEATURED_PRODUCTS_LIMIT = 6
 
 // Layout dos produtos em destaque: 'showcase' | 'carousel' | 'grid'
 const PRODUCTS_LAYOUT: 'showcase' | 'carousel' | 'grid' = 'showcase'
 
+const mobileActionClass =
+  'focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-button border border-neutral-300 px-4 py-3 text-body font-medium text-neutral-900 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-900'
+
 export function HomePage() {
   const { activeProducts } = useCatalog()
+  const isDesktop = useMediaQuery('(min-width: 768px)')
 
   const featuredProducts = useMemo(
     () => activeProducts.slice(0, FEATURED_PRODUCTS_LIMIT),
     [activeProducts],
+  )
+
+  const categoriesAction = (
+    <Link
+      to="/#catalogo"
+      className={
+        isDesktop
+          ? 'focus-ring inline-flex min-h-11 shrink-0 items-center gap-2 rounded-button text-body font-medium text-sky-700 transition-colors hover:text-sky-800 dark:text-sky-300 dark:hover:text-sky-200'
+          : mobileActionClass
+      }
+    >
+      Ver todas as categorias
+      <Icon name="arrow-right" className="h-4 w-4" />
+    </Link>
+  )
+
+  const productsAction = (
+    <Link
+      to="/catalogo"
+      className={
+        isDesktop
+          ? 'focus-ring inline-flex min-h-11 shrink-0 items-center gap-2 rounded-button text-body font-medium text-sky-700 transition-colors hover:text-sky-800 dark:text-sky-300 dark:hover:text-sky-200'
+          : mobileActionClass
+      }
+    >
+      Ver todos os produtos
+      <Icon name="arrow-right" className="h-4 w-4" />
+    </Link>
   )
 
   return (
@@ -64,6 +97,10 @@ export function HomePage() {
                 ))}
               </ScrollRail>
             </div>
+
+            {!isDesktop ? (
+              <div className="container mt-6">{categoriesAction}</div>
+            ) : null}
           </section>
         </FadeContent>
 
@@ -102,19 +139,20 @@ export function HomePage() {
               ) : null}
             </div>
 
-            {featuredProducts.length > 0 ? (
-              <div className="mt-6">
-                {PRODUCTS_LAYOUT === 'showcase' ? (
-                  <FeaturedShowcase products={featuredProducts} />
-                ) : PRODUCTS_LAYOUT === 'carousel' ? (
-                  <ProductCarousel products={featuredProducts} />
-                ) : (
-                  <div className="container">
-                    <ProductGrid products={featuredProducts} />
-                  </div>
-                )}
-              </div>
-            ) : null}
+<div className="mt-6">
+       {PRODUCTS_LAYOUT === 'showcase' ? (
+         <FeaturedShowcase products={featuredProducts} />
+       ) : PRODUCTS_LAYOUT === 'carousel' ? (
+         <ProductCarousel products={featuredProducts} />
+       ) : (
+         <div className="container">
+           <ProductGrid products={featuredProducts} />
+         </div>
+       )}
+     </div>
+     {!isDesktop ? (
+       <div className="container mt-6">{productsAction}</div>
+     ) : null}
           </section>
         </FadeContent>
 

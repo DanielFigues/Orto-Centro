@@ -5,12 +5,21 @@ import {
   useEffect,
   useRef,
   useState,
+  type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react'
 import { Icon } from './Icon'
+
+interface CardsPerView {
+  base?: number
+  sm?: number
+  md?: number
+  lg?: number
+  xl?: number
+}
 
 interface ScrollRailProps {
   children: ReactNode
@@ -22,6 +31,8 @@ interface ScrollRailProps {
   arrowsOnSquareImage?: boolean
   prevAriaLabel?: string
   nextAriaLabel?: string
+  /** Override default cards-per-view (including peeking fraction) at breakpoints. */
+  cardsPerView?: CardsPerView
 }
 
 interface DragState {
@@ -63,6 +74,7 @@ export function ScrollRail({
   arrowsOnSquareImage = false,
   prevAriaLabel = 'Ver itens anteriores',
   nextAriaLabel = 'Ver próximos itens',
+  cardsPerView,
 }: ScrollRailProps) {
   const trackRef = useRef<HTMLDivElement>(null)
   const dragRef = useRef<DragState>({ ...initialDragState })
@@ -130,6 +142,7 @@ export function ScrollRail({
   }
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    // Mouse drag only; never hijack touch (native scroll handles touch)
     if (event.pointerType !== 'mouse' || event.button !== 0) {
       dragRef.current = { ...initialDragState }
       return
@@ -199,6 +212,25 @@ export function ScrollRail({
 
   const items = Children.toArray(children).filter(isValidElement)
   const showArrows = !coarsePointer && (canScrollPrev || canScrollNext)
+  const trackStyle = cardsPerView
+    ? ({
+        ...(cardsPerView.base != null
+          ? { ['--rail-cards-base' as string]: String(cardsPerView.base) }
+          : {}),
+        ...(cardsPerView.sm != null
+          ? { ['--rail-cards-sm' as string]: String(cardsPerView.sm) }
+          : {}),
+        ...(cardsPerView.md != null
+          ? { ['--rail-cards-md' as string]: String(cardsPerView.md) }
+          : {}),
+        ...(cardsPerView.lg != null
+          ? { ['--rail-cards-lg' as string]: String(cardsPerView.lg) }
+          : {}),
+        ...(cardsPerView.xl != null
+          ? { ['--rail-cards-xl' as string]: String(cardsPerView.xl) }
+          : {}),
+      } as CSSProperties)
+    : undefined
 
   return (
     <div className={`scroll-rail ${className}`}>
@@ -216,6 +248,7 @@ export function ScrollRail({
         onClickCapture={handleClickCapture}
         onDragStart={(event) => event.preventDefault()}
         onKeyDown={handleKeyDown}
+        style={trackStyle}
       >
         {items.map((child, index) => (
           <div

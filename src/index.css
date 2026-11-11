@@ -92,7 +92,7 @@
   --duration-slow: 700ms;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
-  --tap-min: 44px;
+  --tap-min: 2.75rem;
   --focus-ring-width: 2px;
   --focus-ring-offset: 3px;
   --header-height: 64px;
@@ -143,6 +143,12 @@ body {
 .section-y {
   padding-block: var(--section-y);
   margin-block: 0;
+}
+
+@media (max-width: 767px) {
+  .section-y {
+    padding-block: clamp(48px, 12vw, 72px);
+  }
 }
 
 .container {
@@ -215,6 +221,14 @@ body {
   }
 }
 
+@media (max-width: 767px) {
+  .scroll-rail-track {
+    --rail-gap: 16px;
+    /* ~72vw card, ~1.35 visible */
+    --rail-item-basis: 72vw;
+  }
+}
+
 .scroll-rail-item {
   flex: 0 0 var(--rail-item-basis);
   scroll-snap-align: start;
@@ -265,8 +279,8 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
+  width: 3.5rem;
+  height: 3.5rem;
   border-radius: 9999px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   background: #ffffff;
