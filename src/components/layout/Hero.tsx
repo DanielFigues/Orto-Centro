@@ -53,7 +53,7 @@ export function Hero() {
         <GridMotion items={buildGridItems()} gradientColor={gradientColor} />
       </div>
       <div
-        className="absolute inset-0 bg-neutral-50/50 dark:bg-neutral-950/50"
+        className="absolute inset-0 bg-white/50 backdrop-blur-sm dark:bg-black/70"
         aria-hidden="true"
       />
 
@@ -81,23 +81,23 @@ export function Hero() {
               to={{ opacity: 1, y: 0 }}
             />
           </h1>
-          <p className="mt-6 max-w-xl text-lg text-neutral-600 dark:text-neutral-300">
+          <p className="mt-6 max-w-xl text-lg text-slate-800 dark:text-slate-200">
             Produtos de apoio e acessibilidade para o seu dia a dia
           </p>
-          <p className="mt-2 max-w-xl text-neutral-500 dark:text-neutral-400">
+          <p className="mt-2 max-w-xl text-slate-800 dark:text-slate-200">
             Cadeiras de rodas, andadores, auxiliares de higiene e itens de apoio
             cotidiano. Navegue pelas categorias e encontre o produto ideal para
             cada necessidade.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <SpecularButton
-href="#catalogo"
+              href="#catalogo"
               size="md"
               tint="#0284c7"
               tintOpacity={1}
               baseColor="#ffffff"
-              lineColor="#ffffff"
-              textColor="#ffffff"
+              lineColor="#0f172a"
+              textColor="#0f172a"
               radius={14}
             >
               <span className="inline-flex items-center gap-2">
@@ -110,13 +110,13 @@ href="#catalogo"
               size="md"
               tint="#ffffff"
               tintOpacity={1}
-              baseColor="#e5e5e5"
-              lineColor="#38bdf8"
-              textColor="#404040"
+              baseColor="#f8fafc"
+              lineColor="#0f172a"
+              textColor="#0f172a"
               radius={14}
             >
               <span className="inline-flex items-center gap-2">
-                <Icon name="phone" className="h-4 w-4 text-sky-600" />
+                <Icon name="phone" className="h-4 w-4 text-sky-700" />
                 Falar conosco
               </span>
             </SpecularButton>

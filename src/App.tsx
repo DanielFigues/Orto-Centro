@@ -1,31 +1,94 @@
-﻿import { Header } from './components/layout/Header'
+﻿import { useEffect } from 'react'
+import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom'
+import { Header } from './components/layout/Header'
 import { Hero } from './components/layout/Hero'
-import { Sidebar } from './components/layout/Sidebar'
 import { Footer } from './components/layout/Footer'
 import { HomePage } from './pages/HomePage'
 import { AdminPage } from './pages/AdminPage'
+import { ProductDetailPage } from './pages/ProductDetailPage'
 
-const isAdminRoute =
-  typeof window !== 'undefined' &&
-  window.location.pathname.replace(/\/+$/, '') === '/admin'
+function ScrollManager() {
+  const { pathname, hash, key } = useLocation()
 
-function App() {
-  if (isAdminRoute) {
-    return <AdminPage />
+  useEffect(() => {
+    if (!hash) {
+      window.scrollTo(0, 0)
+      return
+    }
+
+    const target = hash.slice(1)
+    let cancelled = false
+    let attempts = 0
+
+    const scrollToTarget = () => {
+      if (cancelled) return
+
+      const element = document.getElementById(target)
+      if (element) {
+        element.scrollIntoView({ block: 'start' })
+        return
+      }
+
+      attempts += 1
+      if (attempts < 40) {
+        window.setTimeout(scrollToTarget, 50)
+      } else {
+        window.scrollTo(0, 0)
+      }
+    }
+
+    scrollToTarget()
+
+    return () => {
+      cancelled = true
+    }
+  }, [key, pathname, hash])
+
+  return null
+}
+
+function HomeLayout() {
+  return (
+    <div className="flex min-h-svh flex-col">
+      <Header />
+      <Hero />
+      <main className="flex-1 px-4 py-8 sm:px-6">
+        <HomePage />
+      </main>
+      <Footer />
+    </div>
+  )
+}
+
+function ProductLayout() {
+  const { id } = useParams()
+  const productId = parseInt(id ?? '', 10)
+
+  if (isNaN(productId)) {
+    return <Navigate to="/" replace />
   }
 
   return (
     <div className="flex min-h-svh flex-col">
       <Header />
-      <Hero />
-      <div className="flex flex-1 gap-8 px-4 py-8 sm:px-6">
-        <Sidebar />
-        <main className="min-w-0 flex-1">
-          <HomePage />
-        </main>
-      </div>
+      <main className="flex-1 px-4 py-8 sm:px-6">
+        <ProductDetailPage productId={productId} />
+      </main>
       <Footer />
     </div>
+  )
+}
+
+function App() {
+  return (
+    <>
+      <ScrollManager />
+      <Routes>
+        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/produto/:id" element={<ProductLayout />} />
+        <Route path="*" element={<HomeLayout />} />
+      </Routes>
+    </>
   )
 }
 

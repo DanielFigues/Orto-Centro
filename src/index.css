@@ -57,3 +57,16 @@ body {
     scroll-behavior: auto;
   }
 }
+
+.ql-toolbar.ql-snow {
+  border-color: var(--color-slate-300);
+}
+
+.ql-container.ql-snow {
+  border-color: var(--color-slate-300);
+}
+
+.ql-container .ql-editor {
+  min-height: 160px;
+  font-size: 1rem;
+}

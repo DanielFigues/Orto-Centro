@@ -1,23 +1,45 @@
 import { useState, type FormEvent } from 'react'
-import { ADMIN_TOKEN } from '../../lib/adminApi'
+import { clearToken } from '../../lib/adminSession'
+import { ApiError, listAllProducts } from '../../services/api'
 import { Icon } from '../ui/Icon'
 
 interface AdminGateProps {
-  onUnlock: () => void
+  onUnlock: (token: string) => void
 }
 
 export function AdminGate({ onUnlock }: AdminGateProps) {
-  const [password, setPassword] = useState('')
+  const [token, setToken] = useState('')
   const [error, setError] = useState('')
+  const [checking, setChecking] = useState(false)
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (password === ADMIN_TOKEN) {
-      setError('')
-      onUnlock()
-    } else {
-      setPassword('')
-      setError('Senha incorreta. Tente novamente.')
+
+    const value = token.trim()
+    if (value === '') {
+      setError('Informe o token de acesso.')
+      return
+    }
+
+    setChecking(true)
+    setError('')
+    try {
+      await listAllProducts(value)
+      onUnlock(value)
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        clearToken()
+        setError('Token de acesso inválido. Tente novamente.')
+      } else {
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Não foi possível validar o token de acesso.',
+        )
+      }
+      setToken('')
+    } finally {
+      setChecking(false)
     }
   }
 
@@ -32,21 +54,22 @@ export function AdminGate({ onUnlock }: AdminGateProps) {
           Área administrativa
         </h1>
         <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-          Digite a senha para gerenciar o catálogo.
+          Informe o token de acesso para gerenciar o catálogo.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
           <label className="flex flex-col gap-1.5">
             <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-              Senha
+              Token de acesso
             </span>
             <input
               type="password"
               autoFocus
               required
-              value={password}
+              autoComplete="current-password"
+              value={token}
               onChange={(e) => {
-                setPassword(e.target.value)
+                setToken(e.target.value)
                 if (error) setError('')
               }}
               placeholder="••••••••"
@@ -54,14 +77,28 @@ export function AdminGate({ onUnlock }: AdminGateProps) {
             />
           </label>
 
-          {error && <p className="text-sm font-medium text-red-600 dark:text-red-400">{error}</p>}
+          {error && (
+            <p role="alert" className="text-sm font-medium text-red-600 dark:text-red-400">
+              {error}
+            </p>
+          )}
 
           <button
             type="submit"
-            className="mt-1 inline-flex items-center justify-center gap-2 rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/50"
+            disabled={checking}
+            className="mt-1 inline-flex items-center justify-center gap-2 rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/50 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Entrar
-            <Icon name="arrow-right" className="h-4 w-4" />
+            {checking ? (
+              <>
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                Verificando...
+              </>
+            ) : (
+              <>
+                Entrar
+                <Icon name="arrow-right" className="h-4 w-4" />
+              </>
+            )}
           </button>
         </form>
       </div>
