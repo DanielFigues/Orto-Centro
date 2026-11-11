@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import type { Product } from '../../types/product'
 import { formatPrice } from '../../lib/formatPrice'
 import { Icon } from '../ui/Icon'
+import { AvailabilityButton } from './AvailabilityButton'
 
 const DURATION = 7000
 
@@ -301,11 +302,11 @@ export function FeaturedShowcase({
               aria-label={`${index + 1} de ${count}: ${product.name}`}
               aria-hidden={!isActive}
               {...inertProps}
-              className={`absolute inset-0 grid h-full min-h-0 grid-cols-1 lg:grid-cols-[40%_60%] ${
+              className={`absolute inset-0 flex h-full min-h-0 flex-col lg:grid lg:grid-cols-[40%_60%] ${
                 reduceMotion ? '' : 'transition-opacity duration-[400ms]'
               } ${isActive ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
             >
-              <div className="flex h-full min-h-0 flex-col justify-center gap-4 [padding:clamp(24px,3vw,56px)] lg:order-1">
+              <div className="flex min-h-0 flex-shrink-0 flex-col justify-center gap-4 [padding:clamp(24px,3vw,56px)] lg:order-1 lg:h-full">
                 <p className="text-label font-medium uppercase tracking-wide text-sky-700 dark:text-sky-300">
                   {product.category}
                 </p>
@@ -316,7 +317,7 @@ export function FeaturedShowcase({
                   {title}
                 </h3>
                 {description ? (
-                  <p className="max-w-[60ch] text-body leading-relaxed text-neutral-600 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] overflow-hidden dark:text-neutral-300">
+                  <p className="hidden max-w-[60ch] text-body leading-relaxed text-neutral-600 [-webkit-box-orient:vertical] [-webkit-line-clamp:2] overflow-hidden lg:[display:-webkit-box] dark:text-neutral-300">
                     {description}
                   </p>
                 ) : null}
@@ -325,19 +326,24 @@ export function FeaturedShowcase({
                     {formattedPrice}
                   </p>
                 ) : null}
-                <div className="flex flex-wrap items-center gap-3 pt-1">
+                <div className="flex flex-col items-stretch gap-3 pt-1 sm:flex-row sm:flex-wrap sm:items-center">
                   <Link
                     to={`/produto/${product.id}`}
-                    className="focus-ring inline-flex min-h-12 items-center justify-center rounded-button bg-sky-700 px-5 text-body font-medium text-white transition-colors hover:bg-sky-800 dark:bg-sky-300 dark:text-neutral-950 dark:hover:bg-sky-200"
+                    className="focus-ring inline-flex min-h-12 w-full items-center justify-center rounded-button bg-sky-700 px-5 text-body font-medium text-white transition-colors hover:bg-sky-800 dark:bg-sky-300 dark:text-neutral-950 dark:hover:bg-sky-200 sm:w-auto"
                   >
                     Ver produto
                   </Link>
+                  <AvailabilityButton
+                    product={product}
+                    variant="secondary"
+                    className="w-full sm:w-auto"
+                  />
                 </div>
               </div>
 
               <Link
                 to={`/produto/${product.id}`}
-                className="focus-ring relative order-first block h-full min-h-0 w-full overflow-hidden lg:order-2"
+                className="focus-ring relative order-first block min-h-0 w-full flex-1 overflow-hidden lg:order-2 lg:h-full"
                 aria-label={`Ver produto ${product.name}`}
                 tabIndex={isActive ? 0 : -1}
               >

@@ -47,16 +47,18 @@ npm install
 
 Create a `.env` file in the project root:
 
-```bash
-cp .env.example .env
-```
-
-Create `.env.example` with the following content:
-
 ```env
 VITE_API_URL=http://localhost:8000
 API_TOKEN=your_secure_token_here
 ```
+
+Available variables:
+
+| Variable | Description |
+| :--- | :--- |
+| `VITE_API_URL` | Base URL of the PHP backend API (the Vite dev server already proxies `/api` to `http://localhost:8000`, so this is only needed if the API is hosted elsewhere). |
+| `VITE_SITE_URL` | Public URL of the deployed site, without a trailing slash (e.g. `https://www.ortocentro.com.br`). Used to build the product link inside the WhatsApp availability message. If empty, the app falls back to `window.location.origin`, which is fine for local development. |
+| `API_TOKEN` | Admin panel token — must match the token configured on the PHP server. |
 
 ### 3. Set up the database
 
@@ -167,6 +169,6 @@ The audience of this site includes elderly users and caregivers, so accessibilit
 
 1. **Frontend:** Build the frontend using `npm run build`. The output will be placed in the `dist/` folder.
 2. **Backend:** Upload the contents of the `backend/` directory and the `dist/` directory to your web server (e.g., Apache or Nginx with PHP support).
-3. **Configuration:** Ensure the `VITE_API_URL` environment variable points to your production API URL (e.g., `https://api.yourdomain.com`). Set the `API_TOKEN` securely on your server.
+3. **Configuration:** Ensure the `VITE_API_URL` environment variable points to your production API URL (e.g., `https://api.yourdomain.com`). Set `VITE_SITE_URL` to the public URL of the deployed site (e.g., `https://www.ortocentro.com.br`) so the WhatsApp availability message links use the production domain. Set the `API_TOKEN` securely on your server.
 4. **CORS:** Configure your web server or the PHP script to allow CORS requests from your frontend domain. Ensure the `.env` configuration on the production server is secure and inaccessible via the web.
 5. **Uploads:** Make sure the `public/uploads` directory (or wherever your production uploads go) has the appropriate write permissions for the web server user.

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
+import { AvailabilityButton } from '../components/catalog/AvailabilityButton'
 import { ProductCard } from '../components/catalog/ProductCard'
 import { Icon } from '../components/ui/Icon'
 import { useCatalog } from '../context/catalogContextValue'
@@ -361,6 +362,8 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
               {formatPrice(product.price)}
             </p>
           ) : null}
+
+          <AvailabilityButton product={product} className="w-full sm:w-auto" />
 
           {technicalSpecs.length > 0 && (
             <section aria-labelledby="especificacoes-titulo" className="min-w-0">

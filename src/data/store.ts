@@ -6,7 +6,21 @@ export interface StoreInfo {
   mapEmbedSrc: string
   mapTitle: string
   whatsappNumber: string
+  siteUrl: string
 }
+
+// TODO: confirmar o número do WhatsApp com o cliente (dígito a dígito, com DDI+DDD).
+const WHATSAPP_NUMBER = '5538992401409'
+
+function resolveSiteUrl(): string {
+  const envUrl = (import.meta.env?.VITE_SITE_URL as string | undefined)?.trim()
+  if (envUrl) {
+    return envUrl.replace(/\/+$/, '')
+  }
+  return typeof window === 'undefined' ? '' : window.location.origin
+}
+
+export const siteUrl = resolveSiteUrl()
 
 export const storeInfo: StoreInfo = {
   name: 'Orto Centro',
@@ -19,7 +33,8 @@ export const storeInfo: StoreInfo = {
   mapEmbedSrc:
     'https://www.google.com/maps?q=Av.+Mestra+Fininha+Silveira,+565,+Centro,+Montes+Claros+-+MG&output=embed',
   mapTitle: 'Localização da Orto Centro no mapa',
-  whatsappNumber: '(38)3221-1409',
+  whatsappNumber: WHATSAPP_NUMBER,
+  siteUrl,
 }
 
 export function buildWhatsAppUrl(message: string): string {
