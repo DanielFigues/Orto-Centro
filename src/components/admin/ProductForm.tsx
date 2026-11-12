@@ -86,7 +86,8 @@ const EMPTY_FORM: FormState = {
   isActive: true,
 }
 
-const PREDEFINED_SIZES = ['Único', 'PP', 'P', 'M', 'G', 'GG', 'XG']
+const PREDEFINED_SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XG', 'Único']
+const MAX_SIZES = 20
 
 function formatPriceInput(value: number): string {
   return new Intl.NumberFormat('pt-BR', {
@@ -204,8 +205,11 @@ function uniqueSorted(items: (string | undefined)[]): string[] {
   return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'))
 }
 
-function parseSizes(raw: string | undefined): string[] {
+function parseSizes(raw: string[] | string | undefined): string[] {
   if (!raw) return []
+  if (Array.isArray(raw)) {
+    return raw.map((s) => s.trim()).filter((s) => s !== '')
+  }
   return raw
     .split(',')
     .map((s) => s.trim())
@@ -404,6 +408,7 @@ export function ProductForm({
   submittingLabel = 'Adicionando...',
 }: ProductFormProps) {
   const [form, setForm] = useState<FormState>(() => buildInitialForm(product))
+  const [sizeInput, setSizeInput] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [priceError, setPriceError] = useState<string | null>(null)
@@ -437,22 +442,40 @@ export function ProductForm({
   }, [form.category, form.categoryCustom, products])
   const brands = useMemo(() => uniqueSorted(products.map((p) => p.brand)), [products])
 
-  const sizeOptions = useMemo(() => {
-    const extras = form.sizes.filter((s) => !PREDEFINED_SIZES.includes(s))
-    return [...PREDEFINED_SIZES, ...extras]
-  }, [form.sizes])
-
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }))
   }
 
-  function toggleSize(size: string) {
+  function addSize(raw: string) {
+    const size = raw.trim().replace(/\s+/g, ' ')
+    if (size === '') return
+    setForm((prev) => {
+      if (prev.sizes.length >= MAX_SIZES) return prev
+      if (prev.sizes.some((item) => item.toLowerCase() === size.toLowerCase())) return prev
+      return { ...prev, sizes: [...prev.sizes, size] }
+    })
+  }
+
+  function removeSize(size: string) {
     setForm((prev) => ({
       ...prev,
-      sizes: prev.sizes.includes(size)
-        ? prev.sizes.filter((s) => s !== size)
-        : [...prev.sizes, size],
+      sizes: prev.sizes.filter((item) => item !== size),
     }))
+  }
+
+  function moveSize(index: number, direction: -1 | 1) {
+    setForm((prev) => {
+      const target = index + direction
+      if (target < 0 || target >= prev.sizes.length) return prev
+      const sizes = [...prev.sizes]
+      ;[sizes[index], sizes[target]] = [sizes[target], sizes[index]]
+      return { ...prev, sizes }
+    })
+  }
+
+  function commitSizeInput() {
+    addSize(sizeInput)
+    setSizeInput('')
   }
 
   function addSpec() {
@@ -620,7 +643,7 @@ export function ProductForm({
         short_description: form.shortDescription.trim(),
         description: form.description,
         technical_specs: JSON.stringify(specs),
-        sizes: form.sizes.join(','),
+        sizes: form.sizes,
         price: parsedPrice,
         is_active: form.isActive,
         image_url: imageValues[0] ?? '',
@@ -759,30 +782,114 @@ export function ProductForm({
           </label>
 
           <div className="flex flex-col gap-1.5 md:col-span-2">
-            <span className={LABEL_CLASS}>Tamanhos</span>
-            <div className="flex flex-wrap gap-2" role="group" aria-label="Tamanhos disponíveis">
-              {sizeOptions.map((size) => {
-                const selected = form.sizes.includes(size)
-                return (
+            <label htmlFor="product-sizes-input" className={LABEL_CLASS}>
+              Tamanhos
+            </label>
+            <div className="flex flex-col gap-2">
+              {form.sizes.length > 0 ? (
+                <ul className="flex flex-wrap gap-2" aria-label="Tamanhos cadastrados">
+                  {form.sizes.map((size, index) => (
+                    <li
+                      key={size}
+                      className="inline-flex items-center gap-1 rounded-full border border-cyan-600 bg-cyan-50 py-1 pl-3 pr-1 text-sm font-medium text-cyan-800"
+                    >
+                      <span>{size}</span>
+                      <button
+                        type="button"
+                        onClick={() => moveSize(index, -1)}
+                        disabled={index === 0}
+                        aria-label={`Mover ${size} para a esquerda`}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-full text-cyan-700 transition-colors hover:bg-cyan-100 disabled:cursor-not-allowed disabled:opacity-30"
+                      >
+                        <Icon name="chevron-left" className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveSize(index, 1)}
+                        disabled={index === form.sizes.length - 1}
+                        aria-label={`Mover ${size} para a direita`}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-full text-cyan-700 transition-colors hover:bg-cyan-100 disabled:cursor-not-allowed disabled:opacity-30"
+                      >
+                        <Icon name="chevron-right" className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeSize(size)}
+                        aria-label={`Remover tamanho ${size}`}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-full text-cyan-700 transition-colors hover:bg-cyan-100"
+                      >
+                        <Icon name="x" className="h-4 w-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-slate-400">
+                  Nenhum tamanho cadastrado. O produto será tratado como tamanho único.
+                </p>
+              )}
+
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  id="product-sizes-input"
+                  type="text"
+                  value={sizeInput}
+                  onChange={(event) => {
+                    const value = event.target.value
+                    if (value.includes(',')) {
+                      value.split(',').forEach((part) => addSize(part))
+                      setSizeInput('')
+                      return
+                    }
+                    setSizeInput(value)
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault()
+                      commitSizeInput()
+                    }
+                    if (
+                      event.key === 'Backspace' &&
+                      sizeInput === '' &&
+                      form.sizes.length > 0
+                    ) {
+                      removeSize(form.sizes[form.sizes.length - 1])
+                    }
+                  }}
+                  placeholder="Digite um tamanho e pressione Enter"
+                  className={`${FIELD_CLASS} min-w-[14rem] flex-1`}
+                  disabled={form.sizes.length >= MAX_SIZES}
+                />
+                <button
+                  type="button"
+                  onClick={commitSizeInput}
+                  disabled={sizeInput.trim() === '' || form.sizes.length >= MAX_SIZES}
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-cyan-600 px-4 text-sm font-semibold text-cyan-700 transition-colors hover:bg-cyan-50 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Adicionar
+                </button>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-xs text-slate-500">Adicionar rápido:</span>
+                {PREDEFINED_SIZES.map((size) => (
                   <button
                     key={size}
                     type="button"
-                    aria-pressed={selected}
-                    onClick={() => toggleSize(size)}
-                    className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
-                      selected
-                        ? 'border-cyan-600 bg-cyan-600 text-white shadow-sm'
-                        : 'border-slate-300 bg-white text-slate-700 hover:border-cyan-400 hover:bg-cyan-50'
-                    }`}
+                    onClick={() => addSize(size)}
+                    disabled={form.sizes.includes(size) || form.sizes.length >= MAX_SIZES}
+                    className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 transition-colors hover:border-cyan-400 hover:bg-cyan-50 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {size}
                   </button>
-                )
-              })}
+                ))}
+              </div>
+
+              <p className="text-xs text-slate-400">
+                Use Enter ou vírgula para adicionar. As setas reordenam; o × remove.
+                Máximo de {MAX_SIZES} tamanhos.
+              </p>
             </div>
-            <p className="text-xs text-slate-400">
-              Selecione um ou mais tamanhos.
-            </p>
           </div>
         </div>
       </div>

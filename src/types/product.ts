@@ -15,7 +15,11 @@
   short_description?: string
   technical_specs?: string
   brand?: string
-  sizes?: string
+  sizes?: string[]
+  tray_ids?: number[]
+  created_at?: string
+  updated_at?: string
+  imported_at?: string
   price?: number | null
   focalPoint?: string
   is_active: boolean

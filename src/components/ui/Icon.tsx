@@ -174,6 +174,15 @@ export function Icon({ name, className = 'h-5 w-5' }: IconProps) {
           <circle cx="15.5" cy="13.5" r="3.5" />
         </svg>
       )
+    case 'footprints':
+      return (
+        <svg {...common}>
+          <ellipse cx="8" cy="9.5" rx="2.2" ry="3.4" />
+          <ellipse cx="16" cy="14.5" rx="2.2" ry="3.4" />
+          <path d="M6.4 5.2c.9-.8 2.3-.8 3.2 0M14.4 10.2c.9-.8 2.3-.8 3.2 0" />
+          <path d="M6.5 15.2c1.1-.5 2.1-.5 3.1 0M14.5 20.2c1.1-.5 2.1-.5 3.1 0" />
+        </svg>
+      )
     case 'walker':
       return (
         <svg {...common}>

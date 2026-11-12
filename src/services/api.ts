@@ -28,7 +28,7 @@ export interface ProductInput {
   short_description?: string
   technical_specs?: string
   brand?: string
-  sizes?: string
+  sizes?: string[]
   price?: number | null
   is_active?: boolean
 }
@@ -39,6 +39,38 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function toText(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''
+}
+
+function toStringList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => (typeof item === 'string' ? item.trim() : ''))
+      .filter((item) => item !== '')
+  }
+
+  if (typeof value === 'string' && value.trim() !== '') {
+    const raw = value.trim()
+    if (raw.startsWith('[')) {
+      try {
+        return toStringList(JSON.parse(raw))
+      } catch {
+        return []
+      }
+    }
+    return raw
+      .split(',')
+      .map((item) => item.trim())
+      .filter((item) => item !== '')
+  }
+
+  return []
+}
+
+function toNumberList(value: unknown): number[] {
+  if (!Array.isArray(value)) return []
+  return value
+    .map((item) => (typeof item === 'number' ? item : Number(item)))
+    .filter((item) => Number.isFinite(item) && item > 0)
 }
 
 function toPrice(value: unknown): number | null {
@@ -83,7 +115,11 @@ function parseProduct(value: unknown): Product | null {
     short_description: toText(value.short_description),
     technical_specs: toText(value.technical_specs),
     brand: toText(value.brand),
-    sizes: toText(value.sizes),
+    sizes: toStringList(value.sizes),
+    tray_ids: toNumberList(value.tray_ids),
+    created_at: toText(value.created_at),
+    updated_at: toText(value.updated_at),
+    imported_at: toText(value.imported_at),
     price: toPrice(value.price),
     is_active: value.is_active === true || value.is_active === 1,
   }

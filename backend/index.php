@@ -127,6 +127,83 @@ function parse_price($raw, bool $required = false): ?float
     return round($price, 2);
 }
 
+/**
+ * Converte sizes (array, JSON ou texto legado separado por vírgula) em uma
+ * lista limpa de opções. Aceita no máximo 20 tamanhos distintos.
+ *
+ * @return array<int, string>
+ */
+function decode_sizes(mixed $value): array
+{
+    $items = [];
+
+    if (is_array($value)) {
+        $items = $value;
+    } elseif (is_string($value)) {
+        $raw = trim($value);
+        if ($raw !== '') {
+            if (str_starts_with($raw, '[')) {
+                $decoded = json_decode($raw, true);
+                if (is_array($decoded)) {
+                    $items = $decoded;
+                }
+            } else {
+                $items = preg_split('/[,;]/', $raw) ?: [];
+            }
+        }
+    }
+
+    $sizes = [];
+    foreach ($items as $item) {
+        if (!is_scalar($item)) {
+            continue;
+        }
+
+        $size = trim((string) $item);
+        if ($size === '' || mb_strlen($size, 'UTF-8') > 40) {
+            continue;
+        }
+        if (!in_array($size, $sizes, true)) {
+            $sizes[] = $size;
+        }
+        if (count($sizes) >= 20) {
+            break;
+        }
+    }
+
+    return $sizes;
+}
+
+function encode_sizes(mixed $value): string
+{
+    return json_encode(decode_sizes($value), JSON_UNESCAPED_UNICODE) ?: '[]';
+}
+
+/**
+ * @return array<int, int>
+ */
+function decode_tray_ids(mixed $value): array
+{
+    if (is_string($value)) {
+        $value = trim($value);
+        $value = $value === '' ? [] : (json_decode($value, true) ?? []);
+    }
+
+    if (!is_array($value)) {
+        return [];
+    }
+
+    $ids = [];
+    foreach ($value as $id) {
+        $id = (int) $id;
+        if ($id > 0 && !in_array($id, $ids, true)) {
+            $ids[] = $id;
+        }
+    }
+
+    return $ids;
+}
+
 function product_row(array $row): array
 {
     $price = null;
@@ -152,7 +229,11 @@ function product_row(array $row): array
         'short_description' => (string) ($row['short_description'] ?? ''),
         'technical_specs' => (string) ($row['technical_specs'] ?? ''),
         'brand' => (string) ($row['brand'] ?? ''),
-        'sizes' => (string) ($row['sizes'] ?? ''),
+        'sizes' => decode_sizes($row['sizes'] ?? []),
+        'tray_ids' => decode_tray_ids($row['tray_ids'] ?? []),
+        'created_at' => (string) ($row['created_at'] ?? ''),
+        'updated_at' => (string) ($row['updated_at'] ?? ''),
+        'imported_at' => (string) ($row['imported_at'] ?? ''),
         'price' => $price,
         'is_active' => (bool) $row['is_active'],
     ];
@@ -414,7 +495,7 @@ if ($path === '/products' && $method === 'POST') {
         }
     }
     $brand = trim((string) ($data['brand'] ?? ''));
-    $sizes = trim((string) ($data['sizes'] ?? ''));
+    $sizes = encode_sizes($data['sizes'] ?? []);
     $price = array_key_exists('price', $data) ? parse_price($data['price']) : null;
 
     if ($name === '') {
@@ -426,8 +507,8 @@ if ($path === '/products' && $method === 'POST') {
     $isActive = isset($data['is_active']) ? (bool) $data['is_active'] : true;
 
     $stmt = $pdo->prepare(
-        'INSERT INTO products (name, category, subcategory, image_url, image_url_2, image_url_3, image_url_4, image_url_5, video_url, video_url_2, video_url_3, description, short_description, technical_specs, brand, sizes, price, is_active)
-         VALUES (:name, :category, :subcategory, :image_url, :image_url_2, :image_url_3, :image_url_4, :image_url_5, :video_url, :video_url_2, :video_url_3, :description, :short_description, :technical_specs, :brand, :sizes, :price, :is_active)'
+        'INSERT INTO products (name, category, subcategory, image_url, image_url_2, image_url_3, image_url_4, image_url_5, video_url, video_url_2, video_url_3, description, short_description, technical_specs, brand, sizes, price, is_active, created_at, updated_at)
+         VALUES (:name, :category, :subcategory, :image_url, :image_url_2, :image_url_3, :image_url_4, :image_url_5, :video_url, :video_url_2, :video_url_3, :description, :short_description, :technical_specs, :brand, :sizes, :price, :is_active, :created_at, :updated_at)'
     );
     $stmt->execute([
         ':name' => $name,
@@ -448,6 +529,8 @@ if ($path === '/products' && $method === 'POST') {
         ':sizes' => $sizes,
         ':price' => $price,
         ':is_active' => $isActive ? 1 : 0,
+        ':created_at' => date('c'),
+        ':updated_at' => date('c'),
     ]);
 
     $row = $pdo->query('SELECT * FROM products WHERE id = ' . (int) $pdo->lastInsertId())->fetch();
@@ -523,7 +606,7 @@ if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'PUT') {
             }
         }
         $brand = array_key_exists('brand', $data) ? trim((string) ($data['brand'] ?? '')) : (string) ($existing['brand'] ?? '');
-        $sizes = array_key_exists('sizes', $data) ? trim((string) ($data['sizes'] ?? '')) : (string) ($existing['sizes'] ?? '');
+        $sizes = array_key_exists('sizes', $data) ? encode_sizes($data['sizes']) : encode_sizes($existing['sizes'] ?? []);
         $price = array_key_exists('price', $data) ? parse_price($data['price']) : (array_key_exists('price', $existing) ? parse_price($existing['price']) : null);
         $isActive = array_key_exists('is_active', $data) ? (bool) $data['is_active'] : (bool) $existing['is_active'];
 
@@ -550,7 +633,8 @@ if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'PUT') {
              image_url = :image_url, image_url_2 = :image_url_2, image_url_3 = :image_url_3, image_url_4 = :image_url_4, image_url_5 = :image_url_5,
              video_url = :video_url, video_url_2 = :video_url_2, video_url_3 = :video_url_3,
              description = :description, short_description = :short_description,
-             technical_specs = :technical_specs, brand = :brand, sizes = :sizes, price = :price, is_active = :is_active
+             technical_specs = :technical_specs, brand = :brand, sizes = :sizes, price = :price, is_active = :is_active,
+             updated_at = :updated_at
              WHERE id = :id'
         );
         $update->execute([
@@ -572,6 +656,7 @@ if (preg_match('#^/products/(\d+)$#', $path, $m) === 1 && $method === 'PUT') {
             ':sizes' => $sizes,
             ':price' => $price,
             ':is_active' => $isActive ? 1 : 0,
+            ':updated_at' => date('c'),
             ':id' => $id,
         ]);
 

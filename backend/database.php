@@ -118,16 +118,27 @@ function run_pending_migrations(PDO $pdo): void
     }
 }
 
+/**
+ * Abre uma conexão em um caminho específico e aplica as migrações pendentes.
+ * Usado por CLIs que aceitam --db; db() continua sendo o atalho do banco padrão.
+ */
+function db_open(string $path): PDO
+{
+    $pdo = new PDO('sqlite:' . $path);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    $pdo->exec('PRAGMA foreign_keys = ON');
+    run_pending_migrations($pdo);
+
+    return $pdo;
+}
+
 function db(): PDO
 {
     static $pdo = null;
 
     if ($pdo === null) {
-        $pdo = new PDO('sqlite:' . db_path());
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-        $pdo->exec('PRAGMA foreign_keys = ON');
-        run_pending_migrations($pdo);
+        $pdo = db_open(db_path());
     }
 
     return $pdo;

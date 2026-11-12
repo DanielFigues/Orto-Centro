@@ -158,11 +158,27 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
   const [selectedMediaUrl, setSelectedMediaUrl] = useState<string | null>(null)
   const [zoomImage, setZoomImage] = useState<string | null>(null)
   const [mainImageError, setMainImageError] = useState(false)
+  const [selectedSize, setSelectedSize] = useState<string | null>(null)
+  const [sizeProductId, setSizeProductId] = useState(productId)
+
+  if (productId !== sizeProductId) {
+    setSizeProductId(productId)
+    setSelectedSize(null)
+  }
 
   const product = useMemo(
     () => activeProducts.find((item) => item.id === productId),
     [activeProducts, productId],
   )
+
+  const sizes = useMemo(
+    () => (Array.isArray(product?.sizes) ? product.sizes.filter((size) => size.trim() !== '') : []),
+    [product],
+  )
+
+  const effectiveSize =
+    selectedSize ?? (sizes.length === 1 ? sizes[0] : null)
+  const requiresSizeSelection = sizes.length > 1 && selectedSize === null
 
   const galleryMedia = useMemo<GalleryMedia[]>(() => {
     if (!product) return []
@@ -407,7 +423,55 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
             </p>
           ) : null}
 
-          <AvailabilityButton product={product} className="w-full sm:w-auto" />
+          {sizes.length > 1 ? (
+            <fieldset className="min-w-0">
+              <legend className="text-label font-medium text-neutral-500 dark:text-neutral-400">
+                Escolha o tamanho
+              </legend>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {sizes.map((size) => {
+                  const checked = effectiveSize === size
+                  return (
+                    <label
+                      key={size}
+                      className={`focus-ring focus-within:ring-2 focus-within:ring-sky-600 focus-within:ring-offset-2 inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-button border px-4 text-body font-medium transition-colors ${
+                        checked
+                          ? 'border-sky-700 bg-sky-700 text-white dark:border-sky-300 dark:bg-sky-300 dark:text-neutral-950'
+                          : 'border-neutral-300 bg-white text-neutral-700 hover:border-neutral-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:border-neutral-500'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name={`product-size-${product.id}`}
+                        value={size}
+                        checked={checked}
+                        onChange={() => setSelectedSize(size)}
+                        className="sr-only"
+                      />
+                      {size}
+                    </label>
+                  )
+                })}
+              </div>
+              {requiresSizeSelection ? (
+                <p
+                  id="size-required-hint"
+                  aria-live="polite"
+                  className="mt-2 text-label font-medium text-amber-700 dark:text-amber-300"
+                >
+                  Selecione um tamanho para consultar a disponibilidade.
+                </p>
+              ) : null}
+            </fieldset>
+          ) : null}
+
+          <AvailabilityButton
+            product={product}
+            selectedSize={effectiveSize}
+            disabled={requiresSizeSelection}
+            describedBy={requiresSizeSelection ? 'size-required-hint' : undefined}
+            className="w-full sm:w-auto"
+          />
 
           {technicalSpecs.length > 0 && (
             <section aria-labelledby="especificacoes-titulo" className="min-w-0">

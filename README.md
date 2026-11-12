@@ -155,6 +155,88 @@ Orto-Centro/
 - The real database (`backend/data/catalog.sqlite`) is **not** in the repository: `backend/data/*.sqlite`, `*.sqlite3` and `*.db` are ignored by git. `backend/data/` (database) and `backend/uploads/` (uploads) are created automatically by the backend if missing.
 - `backend/data/` must not be web-accessible (the `.sqlite` file must not be downloadable by URL). It ships an `.htaccess` with `Require all denied` for Apache (requires `AllowOverride All`). For Nginx, add an equivalent rule, e.g. `location /backend/data/ { deny all; return 404; }`. Best practice: keep the whole `backend/` directory outside the web root and only expose `index.php` (and `/uploads/` for images).
 
+## Importing products from Tray
+
+Bulk imports read a Tray CSV export and write directly to the SQLite catalog. The source files and generated reports are runtime-only and ignored by git (`backend/import/`, `backend/data/backups/`).
+
+### Files
+
+| File | Purpose |
+| :--- | :--- |
+| `backend/import/produtos.csv` | Tray CSV export (`;` separated, Windows-1252). |
+| `backend/import/product-categories.json` | Per-product category mapping, keyed by `Código produto` (`category` + `subcategory` slugs). Edit this before importing. |
+| `backend/import/import.php` | Import CLI. |
+| `backend/import/activate.php` | Bulk activation CLI. |
+| `backend/import/reports/` | JSON report of every run. |
+
+The importer reads the canonical taxonomy from `src/data/categories.ts`, so a slug in `product-categories.json` must exist there.
+
+### Import
+
+```bash
+# Dry run (default): validates everything and writes a JSON report, but does
+# not touch the database and does not download images.
+php backend/import/import.php
+
+# Apply: creates a backup, applies pending migrations, inserts/updates rows
+# and downloads images into public/uploads.
+php backend/import/import.php --apply
+```
+
+Important behavior:
+
+- **Dry run is the default.** Only `--apply` writes to the database.
+- **Backup first.** Before writing, `--apply` copies the database to `backend/data/backups/catalog.<timestamp>.sqlite` and aborts if the copy fails.
+- **New products are always inactive** (`is_active = 0`). Use the activation CLI after review.
+- **Idempotent.** Products are matched by the nullable `tray_id` column (migration `005_add_tray_id`), so re-running does not duplicate rows. Existing products are skipped unless `--update` (full update) or `--refresh-images` (images only) is passed.
+- **Images** are downloaded from the Tray CDN, validated, saved to `public/uploads` using the same naming as the admin (`img_YYYYmmdd_His_<8hex>.<ext>`) and stored as `/uploads/<file>`. Tray URLs are never hotlinked. Up to 5 images per product are kept; YouTube/Vimeo embeds in `Imagens adicionais` are skipped and counted.
+- **Not imported:** promotional prices/dates, seals, stock, cost, IPI, NCM, EAN, SEO keywords, sales counts, and dimensions (weight/length/width/height). Prices are imported only with `--with-prices` and only when `Preço venda` is greater than zero.
+- **Text cleanup:** promotional names/blocks are removed, all-uppercase names are converted to sentence case, and descriptions are stripped of Tray buttons, banners, forms and links. Every hit is listed in the dry-run output and the JSON report.
+
+Useful flags: `--update`, `--refresh-images`, `--with-prices`, `--include-hidden`, `--limit=N`, `--verbose`, `--insecure-images`, `--csv=`, `--map=`, `--categories=`, `--uploads=`, `--help`.
+
+### Activate after review
+
+Imported products stay hidden until activated. A product is **ready** when it has at least one image and a non-empty description.
+
+```bash
+# Report only (default)
+php backend/import/activate.php --dry-run
+
+# Activate every ready imported product
+php backend/import/activate.php --all-ready
+
+# Activate only one category
+php backend/import/activate.php --category=ortopedia-e-suporte
+```
+
+`--all-ready` and `--category` create a database backup before writing. Only imported products (`tray_id` filled) that are currently inactive are considered.
+
+### Serving uploaded images (`/uploads`)
+
+The backend writes files to `public/uploads` and stores the relative path `/uploads/<file>` in the database, exactly like the admin panel.
+
+- **Development:** Vite serves the `public/` directory at the site root, so `/uploads/<file>` resolves to `public/uploads/<file>` automatically. Run the PHP API and `npm run dev` as usual; no extra configuration is needed.
+- **Production:** the web server must serve `/uploads/` from the same persistent directory the backend writes to. If the site is served from `dist/`, either keep uploads in a separate persistent folder and alias it, or copy/symlink `public/uploads` into `dist/uploads` on deploy. A clean `npm run build` recreates `dist/`, so do not rely on `dist/uploads` as the only copy — keep the real files outside the build output. Apache example:
+
+  ```apache
+  Alias /uploads/ /var/www/orto-centro/public/uploads/
+  <Directory /var/www/orto-centro/public/uploads/>
+      Require all granted
+  </Directory>
+  ```
+
+  Nginx example:
+
+  ```nginx
+  location /uploads/ {
+      alias /var/www/orto-centro/public/uploads/;
+      try_files $uri =404;
+  }
+  ```
+
+  Make sure that directory is writable by the PHP user and included in backups.
+
 ## Accessibility
 
 The audience of this site includes elderly users and caregivers, so accessibility is a core requirement and not an extra:
