@@ -28,6 +28,6 @@ export const faqItems: FaqItem[] = [
     id: 'garantia',
     question: 'Os produtos têm garantia?',
     answer:
-      '...',
+      'Sim, consta no detalhe de cada produto. A garantia é do fabricante e varia de acordo com o item.',
   },
 ]

@@ -37,7 +37,7 @@ export function FaqSection() {
               role="region"
               aria-labelledby={buttonId}
               hidden={!isOpen}
-              className="px-5 pb-5 sm:px-6"
+              className="px-5 pb-5 pt-3 sm:px-6"
             >
               <p className="max-w-3xl text-body leading-relaxed text-neutral-600 dark:text-neutral-300">
                 {item.answer}

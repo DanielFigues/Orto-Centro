@@ -1,0 +1,12 @@
+{
+  "mobilidade": { "x": 0.5, "y": 0.5 },
+  "ortopedia-e-suporte": { "x": 0.5, "y": 0.5 },
+  "apoio-postural": { "x": 0.5, "y": 0.5 },
+  "banho-e-higiene": { "x": 0.5, "y": 0.5 },
+  "compressao-e-circulacao": { "x": 0.5, "y": 0.5 },
+  "saude-dos-pes": { "x": 0.5, "y": 0.5 },
+  "fisioterapia-e-exercicios": { "x": 0.5, "y": 0.5 },
+  "bem-estar-e-terapia": { "x": 0.5, "y": 0.5 },
+  "cuidados-em-casa": { "x": 0.5, "y": 0.5 },
+  "locacao-de-equipamentos": { "x": 0.5, "y": 0.5 }
+}

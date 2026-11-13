@@ -8,11 +8,21 @@ interface CategoryCardProps {
   category: Category
 }
 
+// Rail card widths: mobile ~72vw; md ~1/2.8 content; lg ~1/3.4; xl ~1/4.15 of content (peeking).
+const CATEGORY_IMAGE_SIZES =
+  '(min-width: 1536px) 23vw, (min-width: 1280px) 28vw, (min-width: 1024px) 34vw, (min-width: 768px) 43vw, 72vw'
+
 export function CategoryCard({ category }: CategoryCardProps) {
   const path = categoryPath(category)
   const visibleSubcategories = category.subcategories.slice(0, 3)
   const isDesktop = useMediaQuery('(min-width: 768px)')
   const subcategoryText = category.subcategories.map((s) => s.name).join(', ')
+
+  const imageSrc = category.image
+  const imageSrc600 = imageSrc ? imageSrc.replace(/\.jpg$/, '-600.jpg') : null
+  const imageWidth = category.imageWidth ?? 1200
+  const imageHeight = category.imageHeight ?? 1200
+  const srcSet = imageSrc && imageSrc600 ? `${imageSrc600} 600w, ${imageSrc} ${imageWidth}w` : undefined
 
   return (
     <article className="group relative flex h-full flex-col">
@@ -21,22 +31,24 @@ export function CategoryCard({ category }: CategoryCardProps) {
         className="focus-ring relative block aspect-square overflow-hidden rounded-[10px] bg-neutral-100 dark:bg-neutral-800"
         aria-label={`Ver categoria ${category.name}`}
       >
-        {category.image ? (
+        {imageSrc ? (
           <img
-            src={category.image}
-            alt={category.imageAlt}
-            width={800}
-            height={800}
+            src={imageSrc}
+            srcSet={srcSet}
+            sizes={CATEGORY_IMAGE_SIZES}
+            alt=""
+            width={imageWidth}
+            height={imageHeight}
             loading="lazy"
             decoding="async"
-            className="h-full w-full object-cover transition-transform duration-300 ease-out motion-reduce:transform-none motion-reduce:transition-none [@media(hover:hover)]:group-hover:scale-[1.03] [@media(hover:hover)]:group-focus-within:scale-[1.03]"
+            className="h-full w-full object-cover"
           />
         ) : (
           <div
-            aria-label={category.imageAlt}
+            aria-label={category.name}
             role="img"
             data-placeholder="TODO"
-            className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neutral-800 to-neutral-950 text-white transition-transform duration-300 ease-out motion-reduce:transform-none motion-reduce:transition-none [@media(hover:hover)]:group-hover:scale-[1.03] [@media(hover:hover)]:group-focus-within:scale-[1.03]"
+            className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neutral-800 to-neutral-950 text-white"
           >
             {/* TODO: substituir placeholder neutro por imagem definitiva */}
             <Icon name={category.imageIcon} className="h-14 w-14 opacity-80" />

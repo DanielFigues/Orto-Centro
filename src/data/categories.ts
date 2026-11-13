@@ -11,6 +11,8 @@ export interface Category {
   tagline: string
   image: string | null
   imageAlt: string
+  imageWidth?: number
+  imageHeight?: number
   imageIcon: string
   subcategories: Subcategory[]
 }
@@ -21,8 +23,10 @@ export const categories: Category[] = [
     slug: 'mobilidade',
     name: 'Mobilidade',
     tagline: 'Apoio para se deslocar com mais autonomia',
-    image: '/images/products/cadeira-rodas-standard.jpg',
-    imageAlt: 'Cadeira de rodas e produtos de mobilidade',
+    image: '/categories/mobilidade.jpg',
+    imageAlt: '',
+    imageWidth: 687,
+    imageHeight: 687,
     imageIcon: 'wheelchair',
     subcategories: [
       { name: 'Cadeiras de Rodas', slug: 'cadeiras-de-rodas', label: 'Cadeiras' },
@@ -36,8 +40,10 @@ export const categories: Category[] = [
     slug: 'ortopedia-e-suporte',
     name: 'Ortopedia e Suporte',
     tagline: 'Suportes para diferentes partes do corpo',
-    image: null, // TODO: substituir placeholder neutro por imagem definitiva
-    imageAlt: 'Produtos de ortopedia e suporte',
+    image: '/categories/ortopedia-e-suporte.jpg',
+    imageAlt: '',
+    imageWidth: 981,
+    imageHeight: 981,
     imageIcon: 'shield',
     subcategories: [
       { name: 'Pernas e Pés', slug: 'pernas-e-pes', label: 'Pernas' },
@@ -51,8 +57,10 @@ export const categories: Category[] = [
     slug: 'apoio-postural',
     name: 'Apoio Postural',
     tagline: 'Almofadas e apoios para mais conforto ao sentar',
-    image: '/images/products/almofada-postural.jpg',
-    imageAlt: 'Almofada postural e apoio para o corpo',
+    image: '/categories/apoio-postural.jpg',
+    imageAlt: '',
+    imageWidth: 980,
+    imageHeight: 980,
     imageIcon: 'cushion',
     subcategories: [
       { name: 'Almofadas de Espuma', slug: 'almofadas-de-espuma', label: 'Espuma' },
@@ -66,8 +74,10 @@ export const categories: Category[] = [
     slug: 'banho-e-higiene',
     name: 'Banho e Higiene',
     tagline: 'Itens para mais segurança no banho e na higiene',
-    image: '/images/products/cadeira-banho-rodas.jpg',
-    imageAlt: 'Cadeira de banho e itens de higiene',
+    image: '/categories/banho-e-higiene.jpg',
+    imageAlt: '',
+    imageWidth: 1200,
+    imageHeight: 1200,
     imageIcon: 'shower',
     subcategories: [
       { name: 'Assentos e Cadeiras de Banho', slug: 'assentos-e-cadeiras-de-banho', label: 'Assentos' },
@@ -80,8 +90,10 @@ export const categories: Category[] = [
     slug: 'compressao-e-circulacao',
     name: 'Compressão e Circulação',
     tagline: 'Meias e sistemas de compressão para o dia a dia',
-    image: null, // TODO: substituir placeholder neutro por imagem definitiva
-    imageAlt: 'Meias e sistemas de compressão',
+    image: '/categories/compressao-e-circulacao.jpg',
+    imageAlt: '',
+    imageWidth: 1200,
+    imageHeight: 1200,
     imageIcon: 'heart',
     subcategories: [
       { name: 'Meias de Panturrilha', slug: 'meias-de-panturrilha', label: 'Panturrilha' },
@@ -95,8 +107,10 @@ export const categories: Category[] = [
     slug: 'saude-dos-pes',
     name: 'Saúde dos Pés',
     tagline: 'Palmilhas, calcanheiras e calçados para o conforto dos pés',
-    image: null, // TODO: substituir placeholder neutro por imagem definitiva
-    imageAlt: 'Palmilhas, calcanheiras e calçados ortopédicos',
+    image: '/categories/saude-dos-pes.jpg',
+    imageAlt: '',
+    imageWidth: 980,
+    imageHeight: 980,
     imageIcon: 'footprints',
     subcategories: [
       { name: 'Palmilhas', slug: 'palmilhas' },
@@ -110,8 +124,10 @@ export const categories: Category[] = [
     slug: 'fisioterapia-e-exercicios',
     name: 'Fisioterapia e Exercícios',
     tagline: 'Acessórios para exercícios e alongamentos em casa',
-    image: null, // TODO: substituir placeholder neutro por imagem definitiva
-    imageAlt: 'Produtos para fisioterapia e exercícios',
+    image: '/categories/fisioterapia-e-exercicios.jpg',
+    imageAlt: '',
+    imageWidth: 980,
+    imageHeight: 980,
     imageIcon: 'tools',
     subcategories: [
       { name: 'Bolas e Colchonetes', slug: 'bolas-e-colchonetes', label: 'Bolas' },
@@ -125,8 +141,10 @@ export const categories: Category[] = [
     slug: 'bem-estar-e-terapia',
     name: 'Bem-estar e Terapia',
     tagline: 'Massagens, calor e recursos para relaxar em casa',
-    image: null, // TODO: substituir placeholder neutro por imagem definitiva
-    imageAlt: 'Produtos para bem-estar e terapia',
+    image: '/categories/bem-estar-e-terapia.jpg',
+    imageAlt: '',
+    imageWidth: 1200,
+    imageHeight: 1200,
     imageIcon: 'star',
     subcategories: [
       { name: 'Massageadores', slug: 'massageadores' },
@@ -139,8 +157,10 @@ export const categories: Category[] = [
     slug: 'cuidados-em-casa',
     name: 'Cuidados em Casa',
     tagline: 'Itens para apoio e conforto no ambiente doméstico',
-    image: null, // TODO: substituir placeholder neutro por imagem definitiva
-    imageAlt: 'Produtos para cuidados em casa',
+    image: '/categories/cuidados-em-casa.jpg',
+    imageAlt: '',
+    imageWidth: 980,
+    imageHeight: 980,
     imageIcon: 'home',
     subcategories: [
       { name: 'Higiene e Proteção', slug: 'higiene-e-protecao', label: 'Higiene' },
@@ -154,8 +174,10 @@ export const categories: Category[] = [
     slug: 'locacao-de-equipamentos',
     name: 'Locação de Equipamentos',
     tagline: 'Equipamentos para alugar por curtos períodos',
-    image: null, // TODO: substituir placeholder neutro por imagem definitiva
-    imageAlt: 'Equipamentos para locação',
+    image: '/categories/locacao-de-equipamentos.jpg',
+    imageAlt: '',
+    imageWidth: 1200,
+    imageHeight: 1200,
     imageIcon: 'clock',
     subcategories: [
       { name: 'Cadeiras', slug: 'cadeiras' },

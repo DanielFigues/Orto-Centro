@@ -1,0 +1,172 @@
+{
+  "mobilidade": {
+    "large": {
+      "width": 687,
+      "height": 687,
+      "file": "/categories/mobilidade.jpg"
+    },
+    "small": {
+      "width": 600,
+      "height": 600,
+      "file": "/categories/mobilidade-600.jpg"
+    },
+    "source": {
+      "width": 687,
+      "height": 1031,
+      "file": "mobilidade.webp"
+    }
+  },
+  "ortopedia-e-suporte": {
+    "large": {
+      "width": 981,
+      "height": 981,
+      "file": "/categories/ortopedia-e-suporte.jpg"
+    },
+    "small": {
+      "width": 600,
+      "height": 600,
+      "file": "/categories/ortopedia-e-suporte-600.jpg"
+    },
+    "source": {
+      "width": 1471,
+      "height": 981,
+      "file": "ortopedia-e-suporte.webp"
+    }
+  },
+  "apoio-postural": {
+    "large": {
+      "width": 980,
+      "height": 980,
+      "file": "/categories/apoio-postural.jpg"
+    },
+    "small": {
+      "width": 600,
+      "height": 600,
+      "file": "/categories/apoio-postural-600.jpg"
+    },
+    "source": {
+      "width": 1470,
+      "height": 980,
+      "file": "apoio-postural.webp"
+    }
+  },
+  "banho-e-higiene": {
+    "large": {
+      "width": 1200,
+      "height": 1200,
+      "file": "/categories/banho-e-higiene.jpg"
+    },
+    "small": {
+      "width": 600,
+      "height": 600,
+      "file": "/categories/banho-e-higiene-600.jpg"
+    },
+    "source": {
+      "width": 4536,
+      "height": 8064,
+      "file": "banho-e-higiene.webp"
+    }
+  },
+  "compressao-e-circulacao": {
+    "large": {
+      "width": 1200,
+      "height": 1200,
+      "file": "/categories/compressao-e-circulacao.jpg"
+    },
+    "small": {
+      "width": 600,
+      "height": 600,
+      "file": "/categories/compressao-e-circulacao-600.jpg"
+    },
+    "source": {
+      "width": 4000,
+      "height": 5000,
+      "file": "compressao-e-circulacao.webp"
+    }
+  },
+  "saude-dos-pes": {
+    "large": {
+      "width": 980,
+      "height": 980,
+      "file": "/categories/saude-dos-pes.jpg"
+    },
+    "small": {
+      "width": 600,
+      "height": 600,
+      "file": "/categories/saude-dos-pes-600.jpg"
+    },
+    "source": {
+      "width": 1470,
+      "height": 980,
+      "file": "saude-dos-pes.webp"
+    }
+  },
+  "fisioterapia-e-exercicios": {
+    "large": {
+      "width": 980,
+      "height": 980,
+      "file": "/categories/fisioterapia-e-exercicios.jpg"
+    },
+    "small": {
+      "width": 600,
+      "height": 600,
+      "file": "/categories/fisioterapia-e-exercicios-600.jpg"
+    },
+    "source": {
+      "width": 1470,
+      "height": 980,
+      "file": "fisioterapia-e-exercicios.webp"
+    }
+  },
+  "bem-estar-e-terapia": {
+    "large": {
+      "width": 1200,
+      "height": 1200,
+      "file": "/categories/bem-estar-e-terapia.jpg"
+    },
+    "small": {
+      "width": 600,
+      "height": 600,
+      "file": "/categories/bem-estar-e-terapia-600.jpg"
+    },
+    "source": {
+      "width": 4480,
+      "height": 6720,
+      "file": "bem-estar-e-terapia.webp"
+    }
+  },
+  "cuidados-em-casa": {
+    "large": {
+      "width": 980,
+      "height": 980,
+      "file": "/categories/cuidados-em-casa.jpg"
+    },
+    "small": {
+      "width": 600,
+      "height": 600,
+      "file": "/categories/cuidados-em-casa-600.jpg"
+    },
+    "source": {
+      "width": 1470,
+      "height": 980,
+      "file": "cuidados-em-casa.webp"
+    }
+  },
+  "locacao-de-equipamentos": {
+    "large": {
+      "width": 1200,
+      "height": 1200,
+      "file": "/categories/locacao-de-equipamentos.jpg"
+    },
+    "small": {
+      "width": 600,
+      "height": 600,
+      "file": "/categories/locacao-de-equipamentos-600.jpg"
+    },
+    "source": {
+      "width": 2070,
+      "height": 1380,
+      "file": "locacao-de-equipamentos.webp"
+    }
+  }
+}

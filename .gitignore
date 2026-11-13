@@ -51,6 +51,9 @@ backend/uploads/
 public/uploads/*
 !public/uploads/.gitkeep
 
+# Category image sources (originals); generated assets in public/categories/ are committed
+public/categories-source/
+
 # The dist folder is a build artifact, but keep the runtime uploads folder
 # tracked so it survives a clean deploy/build.
 !dist/uploads/
