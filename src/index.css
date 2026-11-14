@@ -170,6 +170,31 @@ body {
   outline-offset: var(--focus-ring-offset);
 }
 
+.faq-highlight {
+  --faq-highlight-color: var(--color-focus);
+  outline: 2px solid var(--faq-highlight-color);
+  outline-offset: 4px;
+}
+
+.dark .faq-highlight {
+  --faq-highlight-color: var(--color-brand-blue);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .faq-highlight {
+    animation: faq-highlight 1.8s ease-out;
+  }
+}
+
+@keyframes faq-highlight {
+  from {
+    outline-color: var(--faq-highlight-color);
+  }
+  to {
+    outline-color: transparent;
+  }
+}
+
 .tap-target {
   min-width: var(--tap-min);
   min-height: var(--tap-min);

@@ -7,6 +7,7 @@ import { categories, categoryPath } from '../../data/categories'
 import { searchSuggestionTerms } from '../../data/search'
 import { formatPrice } from '../../lib/formatPrice'
 import type { Product } from '../../types/product'
+import { FitImage } from '../ui/FitImage'
 import { Icon } from '../ui/Icon'
 
 interface SearchDialogProps {
@@ -91,17 +92,12 @@ function SearchResultOption({
     >
       <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-button bg-neutral-100 dark:bg-neutral-800">
         {showImage ? (
-          <img
+          <FitImage
             src={product.image_url}
             alt=""
-            aria-hidden="true"
             width={48}
             height={48}
-            loading="lazy"
-            decoding="async"
-            draggable={false}
             onError={() => setHasImageError(true)}
-            className="h-full w-full object-cover"
           />
         ) : (
           <Icon name="tools" className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />

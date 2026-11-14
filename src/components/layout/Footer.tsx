@@ -67,6 +67,11 @@ export function Footer() {
                 )}
               </li>
             ))}
+            <li>
+              <Link to="/perguntas-frequentes" className={linkClass}>
+                Perguntas frequentes
+              </Link>
+            </li>
           </ul>
         </div>
 

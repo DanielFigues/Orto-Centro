@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { AvailabilityButton } from '../components/catalog/AvailabilityButton'
 import { ProductCard } from '../components/catalog/ProductCard'
+import { FitImage } from '../components/ui/FitImage'
 import { Icon } from '../components/ui/Icon'
 import { useCatalog } from '../context/catalogContextValue'
 import { categoryPath, getCategoryByName } from '../data/categories'
@@ -313,14 +314,13 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
                 className="focus-ring group block h-full w-full"
                 aria-label={`Ampliar imagem de ${product.name}`}
               >
-                <img
+                <FitImage
                   src={currentMedia!.url}
                   alt={product.name}
                   width={1000}
                   height={1000}
-                  decoding="async"
+                  priority
                   onError={() => setMainImageError(true)}
-                  className="h-full w-full object-cover"
                 />
                 <span className="pointer-events-none absolute bottom-3 right-3 inline-flex min-h-11 items-center gap-2 rounded-button bg-black/60 px-3 text-label font-medium text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
                   <Icon name="search" className="h-4 w-4" />
@@ -453,6 +453,12 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
                   )
                 })}
               </div>
+              <Link
+                to="/perguntas-frequentes#como-escolher-o-tamanho"
+                className="focus-ring mt-2 inline-flex min-h-11 items-center rounded text-label font-medium text-sky-700 underline-offset-4 transition-colors hover:text-sky-800 hover:underline dark:text-sky-300 dark:hover:text-sky-200"
+              >
+                Como escolher o tamanho?
+              </Link>
               {requiresSizeSelection ? (
                 <p
                   id="size-required-hint"

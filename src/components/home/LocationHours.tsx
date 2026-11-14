@@ -26,6 +26,9 @@ export function LocationHours() {
                   Endereço
                 </span>
                 <span className="block leading-relaxed">{storeInfo.address}</span>
+                <span className="mt-1 block leading-relaxed">
+                  {storeInfo.parking}
+                </span>
               </span>
             </a>
           </li>
@@ -44,9 +47,8 @@ export function LocationHours() {
         </ul>
 
         <p className="text-label text-neutral-500 dark:text-neutral-400">
-          {/* TODO: confirme os dados acima no arquivo de configuração da loja. */}
-          As informações de endereço e horário são provisórias e devem ser
-          confirmadas.
+          {/* TODO: confirme o horário de funcionamento no arquivo de configuração da loja. */}
+          O horário de funcionamento deve ser confirmado com a loja.
         </p>
       </div>
 

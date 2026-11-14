@@ -7,6 +7,7 @@ import { CatalogPage } from './pages/CatalogPage'
 import { AdminPage } from './pages/AdminPage'
 import { ProductDetailPage } from './pages/ProductDetailPage'
 import { CategoryPage } from './pages/CategoryPage'
+import { FaqPage } from './pages/FaqPage'
 import { CatalogProvider } from './context/CatalogContext'
 import {
   REMOVED_CATEGORY_REDIRECT,
@@ -121,6 +122,7 @@ function App() {
       <Routes>
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/catalogo" element={<CatalogPage />} />
+        <Route path="/perguntas-frequentes" element={<FaqPage />} />
         <Route path="/produto/:id" element={<ProductLayout />} />
         <Route path="/categoria/:categorySlug" element={<CategoryRoute />} />
         <Route path="*" element={<HomeLayout />} />

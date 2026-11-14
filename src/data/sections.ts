@@ -17,6 +17,8 @@ export const contact = {
   email: 'contato@ortocentro.com.br',
   emailHref: 'mailto:contato@ortocentro.com.br',
   hours: 'Segunda a sexta, das 8:30h às 18h. Sábado, das 8:30h às 12h.',
-  address: 'Av. Mestra Fininha Silveira, 565 - Centro, Montes Claros - MG, 39401-074',
-  addressHref: 'https://maps.google.com/?q=Av.+Mestra+Fininha+Silveira,+565,+Centro,+Montes+Claros+-+MG',
+  address:
+    'Av. Mestra Fininha, 565 (em frente ao Laboratório da Santa Casa), Montes Claros, MG',
+  addressHref:
+    'https://maps.google.com/?q=Av.+Mestra+Fininha,+565,+Montes+Claros+-+MG',
 }

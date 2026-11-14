@@ -62,6 +62,20 @@ export function HomePage() {
     </Link>
   )
 
+  const faqAction = (
+    <Link
+      to="/perguntas-frequentes"
+      className={
+        isDesktop
+          ? 'focus-ring inline-flex min-h-11 shrink-0 items-center gap-2 rounded-button text-body font-medium text-sky-700 transition-colors hover:text-sky-800 dark:text-sky-300 dark:hover:text-sky-200'
+          : mobileActionClass
+      }
+    >
+      Ver todas as perguntas
+      <Icon name="arrow-right" className="h-4 w-4" />
+    </Link>
+  )
+
   return (
     <>
       <main>
@@ -232,9 +246,13 @@ export function HomePage() {
                 id="faq-titulo"
                 eyebrow="Perguntas frequentes"
                 title="Dúvidas comuns"
-                description="Respostas rápidas sobre atendimento, escolha e produtos. As informações abaixo são provisórias e devem ser confirmadas pela loja."
+                description="Respostas rápidas sobre atendimento, escolha e produtos."
+                action={isDesktop ? faqAction : undefined}
               />
               <FaqSection />
+              {!isDesktop ? (
+                <div className="mt-6">{faqAction}</div>
+              ) : null}
             </section>
           </FadeContent>
 

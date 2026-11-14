@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Product } from '../../types/product'
 import { formatPrice } from '../../lib/formatPrice'
+import { FitImage } from '../ui/FitImage'
 import { Icon } from '../ui/Icon'
 
 interface ProductCardProps {
@@ -20,16 +21,14 @@ export function ProductCard({ product }: ProductCardProps) {
     >
       <div className="product-card-media flex shrink-0 items-center justify-center overflow-hidden bg-neutral-100 dark:bg-neutral-800">
         {showImage ? (
-          <img
+          <FitImage
             src={product.image_url}
             alt={product.name}
             width={800}
             height={1000}
-            loading="lazy"
-            decoding="async"
-            draggable={false}
+            focalPoint={product.focalPoint}
             onError={() => setHasImageError(true)}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
           <Icon

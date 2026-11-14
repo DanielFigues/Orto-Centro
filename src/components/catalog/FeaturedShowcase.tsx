@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Product } from '../../types/product'
 import { formatPrice } from '../../lib/formatPrice'
+import { FitImage } from '../ui/FitImage'
 import { Icon } from '../ui/Icon'
 import { AvailabilityButton } from './AvailabilityButton'
 
@@ -349,16 +350,16 @@ export function FeaturedShowcase({
               >
                 <div className="relative aspect-[4/3] h-full min-h-0 w-full lg:aspect-auto">
                   {product.image_url ? (
-                    <img
+                    <FitImage
                       src={product.image_url}
                       alt={product.name}
                       width={1200}
                       height={900}
-                      loading={isActive || isNext ? 'eager' : 'lazy'}
-                      decoding="async"
-                      fetchPriority={isActive ? 'high' : 'auto'}
-                      className="absolute inset-0 h-full w-full object-cover"
-                      style={{ objectPosition: focalPoint }}
+                      priority={isActive || isNext}
+                      focalPoint={focalPoint}
+                      feather={16}
+                      edgeFeather={6}
+                      blur={56}
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center bg-neutral-100 dark:bg-neutral-800">
@@ -369,6 +370,10 @@ export function FeaturedShowcase({
                     </div>
                   )}
                 </div>
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-y-0 left-0 hidden w-[12%] bg-gradient-to-r from-white to-transparent lg:block dark:from-neutral-900"
+                />
               </Link>
             </article>
           )

@@ -48,7 +48,7 @@ npm install
 Create a `.env` file in the project root:
 
 ```env
-VITE_API_URL=http://localhost:8000
+VITE_API_URL=http://127.0.0.1:8000
 API_TOKEN=your_secure_token_here
 ```
 
@@ -56,7 +56,7 @@ Available variables:
 
 | Variable | Description |
 | :--- | :--- |
-| `VITE_API_URL` | Base URL of the PHP backend API (the Vite dev server already proxies `/api` to `http://localhost:8000`, so this is only needed if the API is hosted elsewhere). |
+| `VITE_API_URL` | Base URL of the PHP backend API (the Vite dev server already proxies `/api` to `http://127.0.0.1:8000`, so this is only needed if the API is hosted elsewhere). |
 | `VITE_SITE_URL` | Public URL of the deployed site, without a trailing slash (e.g. `https://www.ortocentro.com.br`). Used to build the product link inside the WhatsApp availability message. If empty, the app falls back to `window.location.origin`, which is fine for local development. |
 | `API_TOKEN` | Admin panel token — must match the token configured on the PHP server. |
 
@@ -81,7 +81,7 @@ Start the PHP backend:
 
 ```bash
 cd backend
-php -S localhost:8000
+php -S 127.0.0.1:8000
 ```
 
 In another terminal, start the frontend:
@@ -90,7 +90,7 @@ In another terminal, start the frontend:
 npm run dev
 ```
 
-The site is available at http://localhost:5173 and the API at http://localhost:8000.
+The site is available at http://localhost:5173 and the API at http://127.0.0.1:8000.
 
 ## Scripts
 
